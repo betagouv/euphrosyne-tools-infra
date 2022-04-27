@@ -4,6 +4,7 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 3.0.2"
     }
+    random = {}
   }
 
   required_version = ">= 1.1.0"
@@ -13,9 +14,41 @@ provider "azurerm" {
   features {}
 }
 
+provider "random" {
+}
+
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_resource_group" "rg" {
   name     = var.resource_group_name
   location = var.location
+}
+
+resource "azurerm_key_vault" "key-vault" {
+  name                       = "euphrosyne-key-vault"
+  location                   = var.location
+  resource_group_name        = azurerm_resource_group.rg.name
+  sku_name                   = "standard"
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  soft_delete_retention_days = 7
+  purge_protection_enabled   = false
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    key_permissions = [
+      "Get"
+    ]
+
+    secret_permissions = [
+      "Get", "Backup", "Delete", "List", "Purge", "Recover", "Restore", "Set",
+    ]
+
+    storage_permissions = [
+      "Get"
+    ]
+  }
 }
 
 resource "azurerm_virtual_network" "vnet" {
@@ -36,14 +69,14 @@ resource "azurerm_subnet" "guacsubnet" {
   name                 = "guac-subnet"
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = ["10.0.1.0/24"]
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_subnet" "sqlsubnet" {
   name                 = "sql-subnet"
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = ["10.0.2.0/24"]
+  address_prefixes     = ["10.0.3.0/24"]
 
   delegation {
     name = "dlg-Microsoft.DBforMySQL-flexibleServers"

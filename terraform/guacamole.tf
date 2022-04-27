@@ -19,10 +19,26 @@ resource "azurerm_private_dns_zone_virtual_network_link" "private-dns-to-vnet" {
   virtual_network_id    = azurerm_virtual_network.vnet.id
 }
 
+// Database
+
+resource "random_password" "sql-random-password" {
+  length  = 20
+  special = true
+}
+
+resource "azurerm_key_vault_secret" "sql-secret-password" {
+  name         = "sql-secret-password"
+  value        = random_password.sql-random-password.result
+  key_vault_id = azurerm_key_vault.key-vault.id
+  depends_on = [
+    azurerm_key_vault.key-vault
+  ]
+}
+
 resource "azurerm_mysql_flexible_server" "guacd-db" {
   name                   = "guacamole-db"
   administrator_login    = "maxime"
-  administrator_password = ""
+  administrator_password = azurerm_key_vault_secret.sql-secret-password.value
   backup_retention_days  = 7
   location               = var.location
   delegated_subnet_id    = azurerm_subnet.sqlsubnet.id
@@ -31,12 +47,19 @@ resource "azurerm_mysql_flexible_server" "guacd-db" {
   sku_name               = "B_Standard_B1s"
   version                = "8.0.21"
   zone                   = "1"
-  replication_role       = "None"
   storage {
     auto_grow_enabled = true
     iops              = 360
     size_gb           = 20
   }
+}
+
+resource "azurerm_mysql_flexible_database" "guacd-db" {
+  name                = "guacamole"
+  resource_group_name = azurerm_resource_group.rg.name
+  server_name         = azurerm_mysql_flexible_server.guacd-db.name
+  charset             = "utf8"
+  collation           = "utf8_unicode_ci"
 }
 
 resource "azurerm_service_plan" "guac-service-plan" {
