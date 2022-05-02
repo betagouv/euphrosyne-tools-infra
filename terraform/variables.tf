@@ -1,7 +1,11 @@
 variable "resource_group_name" {
-  default = "euphrosyne-fixlab"
+  description = "Name of the resource group"
+  type        = string
+  default     = "euphrosyne-fixlab"
 }
 
 variable "location" {
-  default = "northeurope"
+  description = "Where to host all resources"
+  type        = string
+  default     = "northeurope"
 }
