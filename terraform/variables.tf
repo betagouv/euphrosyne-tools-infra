@@ -7,5 +7,10 @@ variable "resource_group_name" {
 variable "location" {
   description = "Where to host all resources"
   type        = string
-  default     = "northeurope"
+  default     = "westeurope"
+}
+
+variable "prefix" {
+  type    = string
+  default = "euphrosyne"
 }
