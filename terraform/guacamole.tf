@@ -1,5 +1,26 @@
+resource "azurerm_private_dns_zone" "sql-private-dns" {
+  name                = "euphrosyne.mysql.database.azure.com"
+  resource_group_name = azurerm_resource_group.rg.name
+  soa_record {
+    email        = "azureprivatedns-host.microsoft.com"
+    expire_time  = 2419200
+    minimum_ttl  = 10
+    refresh_time = 3600
+    retry_time   = 300
+    ttl          = 3600
+  }
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "sql-private-dns-to-vnet" {
+  name                  = "${var.prefix}-sql-private-dns-vn-link"
+  private_dns_zone_name = azurerm_private_dns_zone.sql-private-dns.name
+  resource_group_name   = azurerm_resource_group.rg.name
+  registration_enabled  = false
+  virtual_network_id    = azurerm_virtual_network.vnet.id
+}
+
 resource "azurerm_private_dns_zone" "private-dns" {
-  name                = "guacd-db.private.mysql.database.azure.com"
+  name                = "euphrosyne.azure.com"
   resource_group_name = azurerm_resource_group.rg.name
   soa_record {
     email        = "azureprivatedns-host.microsoft.com"
@@ -12,7 +33,7 @@ resource "azurerm_private_dns_zone" "private-dns" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "private-dns-to-vnet" {
-  name                  = "kfknbs5twsw6q"
+  name                  = "${var.prefix}-private-dns-vn-link"
   private_dns_zone_name = azurerm_private_dns_zone.private-dns.name
   resource_group_name   = azurerm_resource_group.rg.name
   registration_enabled  = false
@@ -27,7 +48,7 @@ resource "random_password" "sql-random-password" {
 }
 
 resource "azurerm_key_vault_secret" "sql-secret-password" {
-  name         = "sql-secret-password"
+  name         = "${var.prefix}-sql-secret-password"
   value        = random_password.sql-random-password.result
   key_vault_id = azurerm_key_vault.key-vault.id
   depends_on = [
@@ -36,14 +57,14 @@ resource "azurerm_key_vault_secret" "sql-secret-password" {
 }
 
 resource "azurerm_mysql_flexible_server" "guacd-db" {
-  name                   = "guacamole-db"
+  name                   = "${var.prefix}-guacamole-sql-server"
   administrator_login    = "maxime"
   administrator_password = azurerm_key_vault_secret.sql-secret-password.value
   backup_retention_days  = 7
   location               = var.location
   delegated_subnet_id    = azurerm_subnet.sqlsubnet.id
   resource_group_name    = azurerm_resource_group.rg.name
-  private_dns_zone_id    = azurerm_private_dns_zone.private-dns.id
+  private_dns_zone_id    = azurerm_private_dns_zone.sql-private-dns.id
   sku_name               = "B_Standard_B1s"
   version                = "8.0.21"
   zone                   = "1"
@@ -51,6 +72,10 @@ resource "azurerm_mysql_flexible_server" "guacd-db" {
     auto_grow_enabled = true
     iops              = 360
     size_gb           = 20
+  }
+
+  timeouts {
+    create = "12h"
   }
 }
 
@@ -63,7 +88,7 @@ resource "azurerm_mysql_flexible_database" "guacd-db" {
 }
 
 resource "azurerm_service_plan" "guac-service-plan" {
-  name                = "guac-service-plan"
+  name                = "${var.prefix}-guac-service-plan"
   resource_group_name = azurerm_resource_group.rg.name
   location            = var.location
   os_type             = "Linux"
@@ -71,7 +96,7 @@ resource "azurerm_service_plan" "guac-service-plan" {
 }
 
 resource "azurerm_linux_web_app" "guacd-app" {
-  name                = "guacd-app"
+  name                = "${var.prefix}-guacd"
   resource_group_name = azurerm_resource_group.rg.name
   location            = var.location
   service_plan_id     = azurerm_service_plan.guac-service-plan.id
@@ -81,8 +106,65 @@ resource "azurerm_linux_web_app" "guacd-app" {
       docker_image     = "guacamole/guacd"
       docker_image_tag = "latest"
     }
-    ip_restriction {
-      virtual_network_subnet_id = azurerm_subnet.vmsubnet.id
+  }
+}
+
+resource "azurerm_private_endpoint" "guacd-private-end" {
+  name                = "${var.prefix}-guacd-private-endpoint"
+  location            = var.location
+  resource_group_name = azurerm_resource_group.rg.name
+  subnet_id           = azurerm_subnet.vmsubnet.id
+
+  private_dns_zone_group {
+    name                 = "guacd-dns-zone-group"
+    private_dns_zone_ids = [azurerm_private_dns_zone.private-dns.id]
+  }
+
+  private_service_connection {
+    name                           = "guacd-private-connection"
+    private_connection_resource_id = azurerm_linux_web_app.guacd-app.id
+    subresource_names              = ["sites"]
+    is_manual_connection           = false
+  }
+}
+
+resource "azurerm_private_dns_a_record" "guacd-a-record" {
+  name                = "${var.prefix}-guacd-a-record"
+  zone_name           = azurerm_private_dns_zone.private-dns.name
+  resource_group_name = azurerm_resource_group.rg.name
+  ttl                 = 300
+  records             = azurerm_private_endpoint.guacd-private-end.custom_dns_configs.0.ip_addresses
+}
+
+resource "azurerm_linux_web_app" "guacamole-web-app" {
+  name                = "${var.prefix}-guacamole"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = var.location
+  service_plan_id     = azurerm_service_plan.guac-service-plan.id
+  https_only          = true
+
+  site_config {
+    application_stack {
+      docker_image     = "guacamole/guacamole"
+      docker_image_tag = "latest"
     }
   }
+
+  app_settings = {
+    "GUACD_HOSTNAME"             = azurerm_private_endpoint.guacd-private-end.custom_dns_configs.0.fqdn
+    "MYSQL_HOSTNAME"             = azurerm_mysql_flexible_server.guacd-db.fqdn
+    "MYSQL_DATABASE"             = azurerm_mysql_flexible_database.guacd-db.name
+    "MYSQL_USER"                 = "maxime"
+    "MYSQL_PASSWORD"             = azurerm_key_vault_secret.sql-secret-password.value
+    "EXTENSIONS"                 = "auth-header"
+    "HEADER_ENABLED"             = "true"
+    "WEBSITE_DNS_SERVER"         = "168.63.129.16"
+    "WEBSITE_VNET_ROUTE_ALL"     = "1"
+    "MYSQL_AUTO_CREATE_ACCOUNTS" = "true"
+  }
+}
+
+resource "azurerm_app_service_virtual_network_swift_connection" "guacamole-connection" {
+  app_service_id = azurerm_linux_web_app.guacamole-web-app.id
+  subnet_id      = azurerm_subnet.guacsubnet.id
 }
