@@ -98,25 +98,18 @@ resource "azurerm_subnet" "sqlsubnet" {
   }
 }
 
-resource "azurerm_network_security_group" "guacd-network-security" {
-  name                = "accept-guacd-from-guac"
-  location            = var.location
-  resource_group_name = azurerm_resource_group.rg.name
+resource "azurerm_subnet" "guacdsubnet" {
+  name                 = "${var.prefix}-guac-private-subnet"
+  resource_group_name  = azurerm_resource_group.rg.name
+  virtual_network_name = azurerm_virtual_network.vnet.name
+  address_prefixes     = ["10.0.4.0/24"]
 
-  security_rule {
-    name                       = "allow-guacd-from-guac"
-    priority                   = 100
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = 3389
-    source_address_prefix      = azurerm_subnet.guacsubnet.address_prefixes.0
-    destination_address_prefix = "*"
+  delegation {
+    name = "delegation"
+
+    service_delegation {
+      name    = "Microsoft.ContainerInstance/containerGroups"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
   }
-}
-
-resource "azurerm_subnet_network_security_group_association" "rdp-guac-security-to-vm" {
-  subnet_id                 = azurerm_subnet.vmsubnet.id
-  network_security_group_id = azurerm_network_security_group.guacd-network-security.id
 }
