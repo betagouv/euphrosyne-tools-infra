@@ -24,3 +24,8 @@ variable "bastion_user" {
   type    = string
   default = "euphrosyne-bastion"
 }
+
+variable "bastion_password" {
+  type      = string
+  sensitive = true
+}

@@ -32,17 +32,6 @@ resource "azurerm_key_vault_secret" "sql-secret-password" {
   key_vault_id = azurerm_key_vault.key-vault.id
 }
 
-resource "random_password" "bastion-random-password" {
-  length  = 20
-  special = true
-}
-
-resource "azurerm_key_vault_secret" "bastion-random-password" {
-  name         = "${var.prefix}-bastion-random-password"
-  value        = random_password.bastion-random-password.result
-  key_vault_id = azurerm_key_vault.key-vault.id
-}
-
 resource "azurerm_mysql_flexible_server" "guacd-db" {
   name                   = "${var.prefix}-guacamole-sql-server"
   administrator_login    = var.admin_sql_user
@@ -188,7 +177,7 @@ resource "azurerm_linux_virtual_machine" "bastion-vm" {
   network_interface_ids = [azurerm_network_interface.bastion-vm-nic.id]
 
   admin_username                  = var.bastion_user
-  admin_password                  = azurerm_key_vault_secret.bastion-random-password.value
+  admin_password                  = var.bastion_password
   disable_password_authentication = false
 
   os_disk {
@@ -228,8 +217,4 @@ resource "azurerm_virtual_machine_extension" "bastion-vm-init-extension" {
   tags = {
     "usage" = "bastion"
   }
-}
-
-output "bastion-password" {
-  value = azurerm_key_vault_secret.bastion-random-password.value
 }
