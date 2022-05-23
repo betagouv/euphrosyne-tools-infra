@@ -93,6 +93,14 @@ resource "azurerm_container_group" "guacd-container" {
       port     = 4822
       protocol = "TCP"
     }
+
+    volume {
+      name                 = "${var.prefix}-guacd-filetransfer-volume"
+      mount_path           = "/filetransfer"
+      storage_account_name = azurerm_storage_account.sa.name
+      storage_account_key  = azurerm_storage_account.sa.primary_access_key
+      share_name           = azurerm_storage_share.guacd-storage-filetransfer.name
+    }
   }
 }
 

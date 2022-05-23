@@ -11,3 +11,9 @@ resource "azurerm_storage_share" "euphrosyne_fileshare" {
   storage_account_name = azurerm_storage_account.sa.name
   quota                = 50
 }
+
+resource "azurerm_storage_share" "guacd-storage-filetransfer" {
+  name                 = "${var.prefix}-guacd-filestransfer"
+  storage_account_name = azurerm_storage_account.sa.name
+  quota                = 50
+}
