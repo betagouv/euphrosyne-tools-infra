@@ -15,13 +15,13 @@ param projectName string
 param projectUserPassword string
 
 @description('Location')
-param location string = 'northeurope'
+param location string = 'westeurope'
 
 @description('Name for the Virtual Network')
-param vnetName string = 'vm-vnet'
+param vnetName string = 'euphro-vm-vnet'
 
 @description('Name for the Virtual Subnet')
-param subnetName string = 'vm-subnet'
+param subnetName string = 'euphro-vm-subnet'
 
 @description('Name of the virtual machine.')
 param vmName string = 'simple-vm'
