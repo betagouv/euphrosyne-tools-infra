@@ -65,6 +65,8 @@ resource "azurerm_subnet" "vmsubnet" {
   address_prefixes     = ["10.0.1.0/24"]
 
   enforce_private_link_endpoint_network_policies = true
+
+  service_endpoints = ["Microsoft.Storage"]
 }
 
 resource "azurerm_subnet" "guacsubnet" {
