@@ -106,6 +106,8 @@ resource "azurerm_subnet" "guacdsubnet" {
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = ["10.0.4.0/24"]
 
+  service_endpoints = ["Microsoft.Storage"]
+
   delegation {
     name = "delegation"
 

@@ -7,7 +7,8 @@ resource "azurerm_storage_account" "sa" {
 
   network_rules {
     default_action             = "Deny"
-    virtual_network_subnet_ids = [azurerm_subnet.vmsubnet.id]
+    virtual_network_subnet_ids = [azurerm_subnet.vmsubnet.id, azurerm_subnet.guacdsubnet.id]
+    bypass                     = ["AzureServices"]
   }
 }
 
