@@ -117,3 +117,25 @@ resource "azurerm_subnet" "guacdsubnet" {
     }
   }
 }
+
+resource "azurerm_shared_image_gallery" "vm-image-gallery" {
+  name                = "euphrosyne01vmimagegallery"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = var.location
+  description         = "Gallery to hold VM images"
+}
+
+resource "azurerm_shared_image" "base-vm-image" {
+  name                = "${var.prefix}-base-win-vm-image"
+  gallery_name        = azurerm_shared_image_gallery.vm-image-gallery.name
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = var.location
+  os_type             = "Windows"
+  hyper_v_generation  = "V2"
+
+  identifier {
+    publisher = "microsoftwindowsdesktop"
+    offer     = "office-365"
+    sku       = "win10-21h2-avd-m365-g2"
+  }
+}
