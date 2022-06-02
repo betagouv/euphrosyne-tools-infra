@@ -4,12 +4,12 @@ resource "azurerm_storage_account" "sa" {
   location                 = azurerm_resource_group.rg.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-}
 
-resource "azurerm_storage_share" "euphrosyne_fileshare" {
-  name                 = "${var.prefix}-fileshare"
-  storage_account_name = azurerm_storage_account.sa.name
-  quota                = 50
+  network_rules {
+    default_action             = "Deny"
+    virtual_network_subnet_ids = [azurerm_subnet.vmsubnet.id, azurerm_subnet.guacdsubnet.id]
+    bypass                     = ["AzureServices"]
+  }
 }
 
 resource "azurerm_storage_share" "guacd-storage-filetransfer" {

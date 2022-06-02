@@ -6,59 +6,38 @@ param adminUsername string
 @secure()
 param adminPassword string
 
-@description('Project name related to the VM. Will be used as the username of the project user.')
-param projectName string
-
-@description('Password for the VM project password')
-@minLength(12)
-@secure()
-param projectUserPassword string
-
 @description('Location')
 param location string = 'westeurope'
 
+@description('Resource prefix')
+param resourcePrefix string = 'euphrosyne-01'
+
 @description('Name for the Virtual Network')
-param vnetName string = 'euphro-vm-vnet'
+param vnetName string = '${resourcePrefix}-vm-vnet'
 
 @description('Name for the Virtual Subnet')
-param subnetName string = 'euphro-vm-subnet'
+param subnetName string = '${resourcePrefix}-vm-subnet'
 
 @description('Name of the virtual machine.')
 param vmName string = 'simple-vm'
 
-@description('Postdeploy Powershell script URL.')
-param postdeployScriptURL string = 'https://raw.githubusercontent.com/betagouv/euphrosyne-tools-infra/main/powershell/postdeploy.ps1'
+@allowed([
+  'Standard_B8ms'
+  'Standard_B20ms'
+])
+@description('VM Size, can be Standard_B8ms or Standard_B20ms')
+param vmSize string = 'Standard_B8ms'
 
-var vmID = uniqueString(resourceGroup().id, vmName)
+// TODO: Handle multiple vm size
+// Standard_B8ms & Standard_B20ms
+
 var defaultTags = {
   vmName: vmName
-  vmID: vmID
   fromTemplate: 'true'
 }
 
-resource stg 'Microsoft.Storage/storageAccounts@2021-04-01' = {
-  name: 'bootdiag${vmID}'
-  location: location
-  sku: {
-    name: 'Standard_LRS'
-  }
-  kind: 'Storage'
-  tags: defaultTags
-}
-
-resource euphrosyneStg 'Microsoft.Storage/storageAccounts@2021-04-01' existing = {
-  name: 'euphrosynestorageaccount'
-  resource service 'fileServices' existing = {
-    name: 'default'
-
-    resource share 'shares' existing = {
-      name: 'euphrosyne-fileshare'
-    }
-  }
-}
-
 resource nic 'Microsoft.Network/networkInterfaces@2021-02-01' = {
-  name: 'vm-nic-${vmID}'
+  name: '${resourcePrefix}-vm-nic-${vmName}'
   location: location
   properties: {
     ipConfigurations: [
@@ -77,11 +56,11 @@ resource nic 'Microsoft.Network/networkInterfaces@2021-02-01' = {
 }
 
 resource vm 'Microsoft.Compute/virtualMachines@2021-03-01' = {
-  name: 'vm-${vmID}'
+  name: '${resourcePrefix}-vm-${vmName}'
   location: location
   properties: {
     hardwareProfile: {
-      vmSize: 'Standard_D2as_v4'
+      vmSize: vmSize
     }
     osProfile: {
       computerName: vmName
@@ -103,7 +82,7 @@ resource vm 'Microsoft.Compute/virtualMachines@2021-03-01' = {
       }
       dataDisks: [
         {
-          diskSizeGB: 1023
+          diskSizeGB: 256
           lun: 0
           createOption: 'Empty'
         }
@@ -116,36 +95,8 @@ resource vm 'Microsoft.Compute/virtualMachines@2021-03-01' = {
         }
       ]
     }
-    diagnosticsProfile: {
-      bootDiagnostics: {
-        enabled: true
-        storageUri: stg.properties.primaryEndpoints.blob
-      }
-    }
-  }
-  tags: defaultTags
-}
-
-resource VmScriptExtension 'Microsoft.Compute/virtualMachines/extensions@2021-11-01' = {
-  name: '${vm.name}/postdepoy-script'
-  location: location
-  properties: {
-    publisher: 'Microsoft.Compute'
-    type: 'CustomScriptExtension'
-    typeHandlerVersion: '1.10'
-    settings: {
-      storageAccountName: euphrosyneStg.name
-      fileUris: [
-        postdeployScriptURL
-      ]
-    }
-    protectedSettings: {
-      storageAccountKey: euphrosyneStg.listKeys().keys[0].value
-      commandToExecute: 'powershell -ExecutionPolicy Unrestricted -File postdeploy.ps1 -ProjectUserPassword ${projectUserPassword} -ProjectUsername ${projectName} -StorageAccountName ${euphrosyneStg.name} -StorageAccessKey ${euphrosyneStg.listKeys().keys[0].value} -FileshareName ${euphrosyneStg::service::share.name} -ProjectName ${projectName}'
-    }
   }
   tags: defaultTags
 }
 
 output privateIPVM string = nic.properties.ipConfigurations[0].properties.privateIPAddress
-output vmID string = vmID
