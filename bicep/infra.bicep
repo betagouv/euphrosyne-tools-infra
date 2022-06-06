@@ -28,9 +28,6 @@ param vmName string = 'simple-vm'
 @description('VM Size, can be Standard_B8ms or Standard_B20ms')
 param vmSize string = 'Standard_B8ms'
 
-// TODO: Handle multiple vm size
-// Standard_B8ms & Standard_B20ms
-
 var defaultTags = {
   vmName: vmName
   fromTemplate: 'true'
