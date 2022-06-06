@@ -7,6 +7,13 @@ terraform {
     random = {}
   }
 
+  backend "azurerm" {
+    resource_group_name  = "euphrosyne-01-tfstate"
+    storage_account_name = "euphrosyne01tfstatestg"
+    container_name       = "euphrosyne-01-tfstate-stg-tfstate"
+    key                  = "terraform.tfstate"
+  }
+
   required_version = ">= 1.1.0"
 }
 
