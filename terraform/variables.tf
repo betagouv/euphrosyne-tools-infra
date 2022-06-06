@@ -29,3 +29,8 @@ variable "bastion_password" {
   type      = string
   sensitive = true
 }
+
+variable "az_account_object_id" {
+  type      = string
+  sensitive = true
+}
