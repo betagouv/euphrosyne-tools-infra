@@ -85,7 +85,7 @@ resource "azurerm_container_group" "guacd-container" {
 
   container {
     name   = "guacd"
-    image  = "guacamole/guacd:latest"
+    image  = "guacamole/guacd:1.4.0"
     cpu    = "0.5"
     memory = "1.5"
 
@@ -110,7 +110,7 @@ resource "azurerm_service_plan" "guac-service-plan" {
   resource_group_name = azurerm_resource_group.rg.name
   location            = var.location
   os_type             = "Linux"
-  sku_name            = "B2"
+  sku_name            = "S2"
 }
 
 resource "azurerm_linux_web_app" "guacamole-web-app" {
@@ -123,7 +123,7 @@ resource "azurerm_linux_web_app" "guacamole-web-app" {
   site_config {
     application_stack {
       docker_image     = "guacamole/guacamole"
-      docker_image_tag = "latest"
+      docker_image_tag = "1.4.0"
     }
   }
 
