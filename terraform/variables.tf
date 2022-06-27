@@ -34,3 +34,8 @@ variable "az_account_object_id" {
   type      = string
   sensitive = true
 }
+
+variable "elab_secret_key" {
+  type      = string
+  sensitive = true
+}
