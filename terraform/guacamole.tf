@@ -53,14 +53,6 @@ resource "azurerm_container_group" "guacd-container" {
 }
 
 // APP SERVICE
-resource "azurerm_service_plan" "guac-service-plan" {
-  name                = "${var.prefix}-guac-service-plan"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = var.location
-  os_type             = "Linux"
-  sku_name            = "S2"
-}
-
 resource "azurerm_linux_web_app" "guacamole-web-app" {
   name                = "${var.prefix}-guacamole"
   resource_group_name = azurerm_resource_group.rg.name

@@ -126,6 +126,16 @@ resource "azurerm_subnet" "guacdsubnet" {
   }
 }
 
+// App Service
+resource "azurerm_service_plan" "guac-service-plan" {
+  name                = "${var.prefix}-guac-service-plan"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = var.location
+  os_type             = "Linux"
+  sku_name            = "S2"
+}
+
+// VM Images
 resource "azurerm_shared_image_gallery" "vm-image-gallery" {
   name                = "euphrosyne01vmimagegallery"
   resource_group_name = azurerm_resource_group.rg.name
