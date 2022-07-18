@@ -22,12 +22,6 @@ resource "azurerm_storage_share" "guacd-storage-filetransfer" {
   quota                = 50
 }
 
-resource "azurerm_storage_share" "elab-storage" {
-  name                 = "${var.prefix}-elab"
-  storage_account_name = azurerm_storage_account.sa.name
-  quota                = 50
-}
-
 resource "azurerm_storage_share" "common" {
   name                 = "${var.prefix}-common"
   storage_account_name = azurerm_storage_account.sa.name
