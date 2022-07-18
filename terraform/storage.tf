@@ -6,13 +6,7 @@ resource "azurerm_storage_account" "sa" {
   account_replication_type = "LRS"
 
   network_rules {
-    default_action = "Deny"
-    virtual_network_subnet_ids = [
-      azurerm_subnet.vmsubnet.id,
-      azurerm_subnet.guacdsubnet.id,
-      azurerm_subnet.guacsubnet.id
-    ]
-    bypass = ["AzureServices"]
+    default_action = "Allow"
   }
 }
 
