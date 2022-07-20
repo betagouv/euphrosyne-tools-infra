@@ -1,11 +1,3 @@
-@description('Username for the VM admin user')
-param adminUsername string
-
-@description('Password for the VM admin user')
-@minLength(12)
-@secure()
-param adminPassword string
-
 @description('Location')
 param location string = 'westeurope'
 
@@ -28,12 +20,44 @@ param vmName string = 'simple-vm'
 @description('VM Size, can be Standard_B8ms or Standard_B20ms')
 param vmSize string = 'Standard_B8ms'
 
+@description('Name of the snapshot to use')
+param snapshotName string
+
+@description('Name of the disk setup to use')
+param snapshotDiskName string
+
+@description('Availibility zones')
+param zones array = ['3']
+
 var defaultTags = {
   vmName: vmName
   fromTemplate: 'true'
 }
 
-resource nic 'Microsoft.Network/networkInterfaces@2021-02-01' = {
+resource disk 'Microsoft.Compute/disks@2022-03-02' = {
+  name: '${resourcePrefix}-vm-disk-${vmName}'
+  location: location
+  properties: {
+    creationData: {
+      createOption: 'copy'
+      sourceResourceId: resourceId('Microsoft.Compute/snapshots', snapshotName)
+    }
+    diskSizeGB: 128
+    encryption: {
+      type: 'EncryptionAtRestWithPlatformKey'
+    }
+    networkAccessPolicy: 'AllowPrivate'
+    publicNetworkAccess: 'Disabled'
+    diskAccessId: resourceId('Microsoft.Compute/diskAccesses', snapshotDiskName) 
+  }
+  sku: {
+    name:'Premium_LRS'
+  }
+  zones: zones
+  tags: defaultTags
+}
+
+resource nic 'Microsoft.Network/networkInterfaces@2022-01-01' = {
   name: '${resourcePrefix}-vm-nic-${vmName}'
   location: location
   properties: {
@@ -52,47 +76,36 @@ resource nic 'Microsoft.Network/networkInterfaces@2021-02-01' = {
   tags: defaultTags
 }
 
-resource vm 'Microsoft.Compute/virtualMachines@2021-03-01' = {
+resource vm 'Microsoft.Compute/virtualMachines@2022-03-01' = {
   name: '${resourcePrefix}-vm-${vmName}'
   location: location
   properties: {
     hardwareProfile: {
       vmSize: vmSize
     }
-    osProfile: {
-      computerName: vmName
-      adminUsername: adminUsername
-      adminPassword: adminPassword
-    }
     storageProfile: {
-      imageReference: {
-        publisher: 'MicrosoftWindowsServer'
-        offer: 'WindowsServer'
-        sku: '2019-datacenter-gensecond'
-        version: 'latest'
-      }
       osDisk: {
-        createOption: 'FromImage'
+        createOption: 'Attach'
+        osType: 'Windows'
         managedDisk: {
-          storageAccountType: 'Standard_LRS'
+          id: disk.id
         }
+        deleteOption: 'Delete'
       }
-      dataDisks: [
-        {
-          diskSizeGB: 256
-          lun: 0
-          createOption: 'Empty'
-        }
-      ]
     }
     networkProfile: {
       networkInterfaces: [
         {
           id: nic.id
+          properties: {
+            deleteOption: 'Delete'
+          }
         }
       ]
     }
+    licenseType: 'Windows_Client'
   }
+  zones: zones
   tags: defaultTags
 }
 
