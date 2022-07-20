@@ -21,13 +21,14 @@ param vmName string = 'simple-vm'
 param vmSize string = 'Standard_B8ms'
 
 @description('Name of the snapshot to use')
-param snapshotName string
+param snapshotName string = '${resourcePrefix}-vm-snapshot'
 
 @description('Name of the disk setup to use')
-param snapshotDiskName string
+param snapshotDiskName string = '${resourcePrefix}-disk-snapshot'
 
 @description('Availibility zones')
 param zones array = ['3']
+
 
 var defaultTags = {
   vmName: vmName
