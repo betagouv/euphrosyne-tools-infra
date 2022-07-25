@@ -20,12 +20,6 @@ param vmName string = 'simple-vm'
 @description('VM Size, can be Standard_B8ms or Standard_B20ms')
 param vmSize string = 'Standard_B8ms'
 
-@description('Name of the snapshot to use')
-param snapshotName string = '${resourcePrefix}-vm-snapshot'
-
-@description('Name of the disk setup to use')
-param snapshotDiskName string = '${resourcePrefix}-disk-snapshot'
-
 @description('Availibility zones')
 param zones array = ['3']
 
@@ -33,29 +27,6 @@ param zones array = ['3']
 var defaultTags = {
   vmName: vmName
   fromTemplate: 'true'
-}
-
-resource disk 'Microsoft.Compute/disks@2022-03-02' = {
-  name: '${resourcePrefix}-vm-disk-${vmName}'
-  location: location
-  properties: {
-    creationData: {
-      createOption: 'copy'
-      sourceResourceId: resourceId('Microsoft.Compute/snapshots', snapshotName)
-    }
-    diskSizeGB: 128
-    encryption: {
-      type: 'EncryptionAtRestWithPlatformKey'
-    }
-    networkAccessPolicy: 'AllowPrivate'
-    publicNetworkAccess: 'Disabled'
-    diskAccessId: resourceId('Microsoft.Compute/diskAccesses', snapshotDiskName) 
-  }
-  sku: {
-    name:'Premium_LRS'
-  }
-  zones: zones
-  tags: defaultTags
 }
 
 resource nic 'Microsoft.Network/networkInterfaces@2022-01-01' = {
@@ -86,12 +57,15 @@ resource vm 'Microsoft.Compute/virtualMachines@2022-03-01' = {
     }
     storageProfile: {
       osDisk: {
-        createOption: 'Attach'
+        createOption: 'fromImage'
         osType: 'Windows'
         managedDisk: {
-          id: disk.id
+          storageAccountType: 'Premium_LRS'
         }
         deleteOption: 'Delete'
+      }
+      imageReference: {
+        id: resourceId('Microsoft.Compute/galleries/images/versions', 'euphrosyne01vmimagegallery', 'euphrosyne-01-base-win-vm-image', '0.1.0')
       }
     }
     networkProfile: {
