@@ -11,7 +11,7 @@ param imageDefinitionName string = 'euphrosyne-01-base-win-vm-image'
 param vmName string
 
 @description('Version')
-param version int
+param version string 
 
 resource gallery 'Microsoft.Compute/galleries/images/versions@2022-01-03' = {
   name: '${galleryName}/${imageDefinitionName}/${version}'
