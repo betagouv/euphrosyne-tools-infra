@@ -1,11 +1,3 @@
-@description('Username for the VM admin user')
-param adminUsername string
-
-@description('Password for the VM admin user')
-@minLength(12)
-@secure()
-param adminPassword string
-
 @description('Location')
 param location string = 'westeurope'
 
@@ -28,12 +20,16 @@ param vmName string = 'simple-vm'
 @description('VM Size, can be Standard_B8ms or Standard_B20ms')
 param vmSize string = 'Standard_B8ms'
 
+@description('Availibility zones')
+param zones array = ['3']
+
+
 var defaultTags = {
   vmName: vmName
   fromTemplate: 'true'
 }
 
-resource nic 'Microsoft.Network/networkInterfaces@2021-02-01' = {
+resource nic 'Microsoft.Network/networkInterfaces@2022-01-01' = {
   name: '${resourcePrefix}-vm-nic-${vmName}'
   location: location
   properties: {
@@ -52,47 +48,39 @@ resource nic 'Microsoft.Network/networkInterfaces@2021-02-01' = {
   tags: defaultTags
 }
 
-resource vm 'Microsoft.Compute/virtualMachines@2021-03-01' = {
+resource vm 'Microsoft.Compute/virtualMachines@2022-03-01' = {
   name: '${resourcePrefix}-vm-${vmName}'
   location: location
   properties: {
     hardwareProfile: {
       vmSize: vmSize
     }
-    osProfile: {
-      computerName: vmName
-      adminUsername: adminUsername
-      adminPassword: adminPassword
-    }
     storageProfile: {
-      imageReference: {
-        publisher: 'MicrosoftWindowsServer'
-        offer: 'WindowsServer'
-        sku: '2019-datacenter-gensecond'
-        version: 'latest'
-      }
       osDisk: {
-        createOption: 'FromImage'
+        createOption: 'fromImage'
+        osType: 'Windows'
         managedDisk: {
-          storageAccountType: 'Standard_LRS'
+          storageAccountType: 'Premium_LRS'
         }
+        deleteOption: 'Delete'
       }
-      dataDisks: [
-        {
-          diskSizeGB: 256
-          lun: 0
-          createOption: 'Empty'
-        }
-      ]
+      imageReference: {
+        id: resourceId('Microsoft.Compute/galleries/images/versions', 'euphrosyne01vmimagegallery', 'euphrosyne-01-base-win-vm-image', '0.1.0')
+      }
     }
     networkProfile: {
       networkInterfaces: [
         {
           id: nic.id
+          properties: {
+            deleteOption: 'Delete'
+          }
         }
       ]
     }
+    licenseType: 'Windows_Client'
   }
+  zones: zones
   tags: defaultTags
 }
 

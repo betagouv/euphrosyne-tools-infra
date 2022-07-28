@@ -150,6 +150,7 @@ resource "azurerm_shared_image" "base-vm-image" {
   location            = var.location
   os_type             = "Windows"
   hyper_v_generation  = "V2"
+  specialized         = true
 
   identifier {
     publisher = "microsoftwindowsdesktop"
