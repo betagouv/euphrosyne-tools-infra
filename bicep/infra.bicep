@@ -65,7 +65,7 @@ resource vm 'Microsoft.Compute/virtualMachines@2022-03-01' = {
         deleteOption: 'Delete'
       }
       imageReference: {
-        id: resourceId('Microsoft.Compute/galleries/images/versions', 'euphrosyne01vmimagegallery', 'euphrosyne-01-base-win-vm-image', '0.1.0')
+        id: resourceId('Microsoft.Compute/galleries/images/versions', 'euphrosyne01vmimagegallery', 'euphrosyne-01-base-win-vm-image', 'latest')
       }
     }
     networkProfile: {
