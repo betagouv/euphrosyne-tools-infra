@@ -8,10 +8,9 @@ terraform {
   }
 
   backend "azurerm" {
-    resource_group_name  = "euphrosyne-01-tfstate"
-    storage_account_name = "euphrosyne01tfstatestg"
-    container_name       = "euphrosyne-01-tfstate-stg-tfstate"
-    key                  = "terraform.tfstate"
+    resource_group_name  = "Euphrosyne_tfstate"
+    storage_account_name = "euphrosynetfstate"
+    container_name       = "tfstate"
   }
 
   required_version = ">= 1.1.0"
@@ -42,7 +41,7 @@ resource "azurerm_key_vault" "key-vault" {
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = var.az_account_object_id
+    object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
       "Get"
@@ -71,7 +70,7 @@ resource "azurerm_subnet" "vmsubnet" {
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = ["10.0.1.0/24"]
 
-  enforce_private_link_endpoint_network_policies = true
+  private_endpoint_network_policies_enabled = true
 
   service_endpoints = ["Microsoft.Storage"]
 }
@@ -137,7 +136,7 @@ resource "azurerm_service_plan" "guac-service-plan" {
 
 // VM Images
 resource "azurerm_shared_image_gallery" "vm-image-gallery" {
-  name                = "euphrosyne01vmimagegallery"
+  name                = replace("${var.prefix}-vm-image-gallery", "-", "")
   resource_group_name = azurerm_resource_group.rg.name
   location            = var.location
   description         = "Gallery to hold VM images"
