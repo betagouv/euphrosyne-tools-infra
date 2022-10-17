@@ -23,6 +23,15 @@ param vmSize string = 'Standard_B8ms'
 @description('Availibility zones')
 param zones array = ['3']
 
+@description('Image gallery to fetch the vm image')
+param imageGallery string = 'euphrostgvmimagegallery'
+
+@description('Image definition')
+param imageDefinition string = 'euphro-stg-base-win-vm-image'
+
+@description('Version used for the image, default to latest')
+param imageVersion string = 'latest'
+
 
 var defaultTags = {
   vmName: vmName
@@ -65,7 +74,7 @@ resource vm 'Microsoft.Compute/virtualMachines@2022-03-01' = {
         deleteOption: 'Delete'
       }
       imageReference: {
-        id: resourceId('Microsoft.Compute/galleries/images/versions', 'euphrosyne01vmimagegallery', 'euphrosyne-01-base-win-vm-image', 'latest')
+        id: resourceId('Microsoft.Compute/galleries/images/versions', imageGallery, imageDefinition, imageVersion)
       }
     }
     networkProfile: {
