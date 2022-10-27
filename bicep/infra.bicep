@@ -10,6 +10,9 @@ param vnetName string = '${resourcePrefix}-vm-vnet'
 @description('Name for the Virtual Subnet')
 param subnetName string = '${resourcePrefix}-vm-subnet'
 
+@description('Project name')
+param projectName string = 'Simple project'
+
 @description('Name of the virtual machine.')
 param vmName string = 'simple-vm'
 
@@ -32,10 +35,19 @@ param imageDefinition string = 'euphro-stg-base-win-vm-image'
 @description('Version used for the image, default to latest')
 param imageVersion string = 'latest'
 
+@description('FileShare name')
+param fileShareName string
+
+@description('Storage account name')
+param storageAccountName string
 
 var defaultTags = {
   vmName: vmName
   fromTemplate: 'true'
+}
+
+resource storageAccount 'Microsoft.Storage/storageAccounts@2022-05-01' existing = {
+  name: storageAccountName
 }
 
 resource nic 'Microsoft.Network/networkInterfaces@2022-01-01' = {
@@ -91,6 +103,22 @@ resource vm 'Microsoft.Compute/virtualMachines@2022-03-01' = {
   }
   zones: zones
   tags: defaultTags
+
+  resource vmMountDriveExtension 'extensions@2022-08-01' = {
+    name: 'mountDriveExtension'
+    location: location
+    properties: {
+      protectedSettings: any({
+        commandToExecute: 'powershell.exe -File ./mountDrive.ps1 -FileShare ${fileShareName} -StorageAccountAccessKey ${storageAccount.listKeys().keys[0].value} -StorageAccount ${storageAccount.name} -ProjectName ${projectName}'
+        fileUris: [
+          'https://raw.githubusercontent.com/betagouv/euphrosyne-tools-infra/main/bicep/mountDrive.ps1'
+        ]
+      })
+      publisher: 'Microsoft.Compute'
+      type: 'CustomScriptExtension'
+      typeHandlerVersion: '1.10'
+    }
+  }
 }
 
 output privateIPVM string = nic.properties.ipConfigurations[0].properties.privateIPAddress
