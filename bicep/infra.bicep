@@ -1,3 +1,5 @@
+// version 1.11
+
 @description('Location')
 param location string = 'westeurope'
 
@@ -23,8 +25,15 @@ param vmName string = 'simple-vm'
 @description('VM Size, can be Standard_B8ms or Standard_B20ms')
 param vmSize string = 'Standard_B8ms'
 
+@description('Name of account using the VM')
+param accountName string
+
+@secure()
+@description('Name of account using the VM')
+param accountPassword string
+
 @description('Availibility zones')
-param zones array = ['3']
+param zones array = [ '3' ]
 
 @description('Image gallery to fetch the vm image')
 param imageGallery string = 'euphrostgvmimagegallery'
@@ -108,11 +117,14 @@ resource vm 'Microsoft.Compute/virtualMachines@2022-03-01' = {
     name: 'mountDriveExtension'
     location: location
     properties: {
-      protectedSettings: any({
-        commandToExecute: 'powershell.exe -File ./mountDrive.ps1 -FileShare ${fileShareName} -StorageAccountAccessKey ${storageAccount.listKeys().keys[0].value} -StorageAccount ${storageAccount.name} -ProjectName ${projectName}'
+      settings: any({
         fileUris: [
           'https://raw.githubusercontent.com/betagouv/euphrosyne-tools-infra/main/bicep/mountDrive.ps1'
+          'https://raw.githubusercontent.com/betagouv/euphrosyne-tools-infra/main/lib/PSTools/2.48/PsExec.exe'
         ]
+      })
+      protectedSettings: any({
+        commandToExecute: '.\\psexec -u ${accountName} -p ${accountPassword} -accepteula -h -i "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -File \${pwd}\\mountDrive.ps1 -FileShare ${fileShareName} -StorageAccountAccessKey ${storageAccount.listKeys().keys[0].value} -StorageAccount ${storageAccount.name} -ProjectName ${projectName}'
       })
       publisher: 'Microsoft.Compute'
       type: 'CustomScriptExtension'
