@@ -1,4 +1,4 @@
-// version 1.11
+// version 2.0
 
 @description('Location')
 param location string = 'westeurope'
@@ -12,11 +12,11 @@ param vnetName string = '${resourcePrefix}-vm-vnet'
 @description('Name for the Virtual Subnet')
 param subnetName string = '${resourcePrefix}-vm-subnet'
 
-@description('Project name')
-param projectName string = 'Simple project'
-
 @description('Name of the virtual machine.')
 param vmName string = 'simple-vm'
+
+@description('Project folder name in Azure Fileshare')
+param fileShareProjectFolder string = vmName
 
 @allowed([
   'Standard_B8ms'
@@ -124,7 +124,7 @@ resource vm 'Microsoft.Compute/virtualMachines@2022-03-01' = {
         ]
       })
       protectedSettings: any({
-        commandToExecute: 'powershell -Command "Enable-PSRemoting -Force" ;.\\psexec -u ${accountName} -p ${accountPassword} -accepteula -h -i "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -File \${pwd}\\mountDrive.ps1 -FileShare ${fileShareName} -StorageAccountAccessKey ${storageAccount.listKeys().keys[0].value} -StorageAccount ${storageAccount.name} -ProjectName ${projectName}'
+        commandToExecute: 'powershell -Command "Enable-PSRemoting -Force" ;.\\psexec -u ${accountName} -p ${accountPassword} -accepteula -h -i "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -File \${pwd}\\mountDrive.ps1 -FileShare ${fileShareName} -StorageAccountAccessKey ${storageAccount.listKeys().keys[0].value} -StorageAccount ${storageAccount.name} -FileShareProjectFolder ${fileShareProjectFolder}'
       })
       publisher: 'Microsoft.Compute'
       type: 'CustomScriptExtension'
