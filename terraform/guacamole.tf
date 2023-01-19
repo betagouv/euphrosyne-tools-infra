@@ -34,8 +34,8 @@ resource "azurerm_container_group" "guacd-container" {
   container {
     name   = "guacd"
     image  = "guacamole/guacd:1.4.0"
-    cpu    = "0.5"
-    memory = "1.5"
+    cpu    = "2"
+    memory = "4"
 
     ports {
       port     = 4822
