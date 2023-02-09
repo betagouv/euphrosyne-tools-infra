@@ -1,4 +1,4 @@
-// version 2.0
+// version 999
 
 @description('Location')
 param location string = 'westeurope'
@@ -119,7 +119,7 @@ resource vm 'Microsoft.Compute/virtualMachines@2022-03-01' = {
     properties: {
       settings: any({
         fileUris: [
-          'https://raw.githubusercontent.com/betagouv/euphrosyne-tools-infra/main/bicep/mountDrive.ps1'
+          'https://raw.githubusercontent.com/betagouv/euphrosyne-tools-infra/72d20593f98f08ccaab8e17c453407d55a3b1ae5/bicep/mountDrive.ps1'
           'https://raw.githubusercontent.com/betagouv/euphrosyne-tools-infra/main/lib/PSTools/2.48/PsExec.exe'
         ]
       })
