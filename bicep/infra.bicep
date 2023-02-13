@@ -119,7 +119,7 @@ resource vm 'Microsoft.Compute/virtualMachines@2022-03-01' = {
     properties: {
       settings: any({
         fileUris: [
-          'https://raw.githubusercontent.com/betagouv/euphrosyne-tools-infra/main/bicep/main.ps1'
+          'https://raw.githubusercontent.com/betagouv/euphrosyne-tools-infra/daa2b79dcac4cc1c6f7932f137862c1d88dcd2d8/bicep/main.ps1'
           'https://raw.githubusercontent.com/betagouv/euphrosyne-tools-infra/main/bicep/mountDrive.ps1'
           'https://raw.githubusercontent.com/betagouv/euphrosyne-tools-infra/main/lib/PSTools/2.48/PsExec.exe'
         ]
