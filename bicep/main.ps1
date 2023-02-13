@@ -25,3 +25,4 @@ Enable-PSRemoting -Force
 # Prevent drive mapping for all users
 Set-ItemProperty -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System" -Name "DisableCMD" -Value "1" -Type DWORD
 Set-ItemProperty -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoDrives" -Value "1" -Type DWORD
+Set-ItemProperty -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoNetConnectDisconnect" -Value "1" -Type DWORD
