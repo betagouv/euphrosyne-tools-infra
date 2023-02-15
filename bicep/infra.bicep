@@ -1,4 +1,4 @@
-// version 2.0
+// version 999
 
 @description('Location')
 param location string = 'westeurope'
@@ -119,12 +119,13 @@ resource vm 'Microsoft.Compute/virtualMachines@2022-03-01' = {
     properties: {
       settings: any({
         fileUris: [
+          'https://raw.githubusercontent.com/betagouv/euphrosyne-tools-infra/main/bicep/createUser.ps1'
           'https://raw.githubusercontent.com/betagouv/euphrosyne-tools-infra/main/bicep/mountDrive.ps1'
           'https://raw.githubusercontent.com/betagouv/euphrosyne-tools-infra/main/lib/PSTools/2.48/PsExec.exe'
         ]
       })
       protectedSettings: any({
-        commandToExecute: 'powershell -Command "Enable-PSRemoting -Force" ;.\\psexec -u ${accountName} -p ${accountPassword} -accepteula -h -i "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -File \${pwd}\\mountDrive.ps1 -FileShare ${fileShareName} -StorageAccountAccessKey ${storageAccount.listKeys().keys[0].value} -StorageAccount ${storageAccount.name} -FileShareProjectFolder ${fileShareProjectFolder}'
+        commandToExecute: 'powershell ./createUser.ps1 -ProjectUsername ${accountName} -ProjectUserPassword ${accountPassword} ; powershell -Command "Enable-PSRemoting -Force" ;.\\psexec -u ${accountName} -p ${accountPassword} -accepteula -h -i "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -File \${pwd}\\mountDrive.ps1 -FileShare ${fileShareName} -StorageAccountAccessKey ${storageAccount.listKeys().keys[0].value} -StorageAccount ${storageAccount.name} -FileShareProjectFolder ${fileShareProjectFolder}'
       })
       publisher: 'Microsoft.Compute'
       type: 'CustomScriptExtension'
