@@ -8,27 +8,12 @@ resource "azurerm_mysql_flexible_database" "guacd-db" {
 }
 
 // CONTAINER
-resource "azurerm_network_profile" "guacd-np" {
-  name                = "${var.prefix}-guacd-np"
-  location            = var.location
-  resource_group_name = azurerm_resource_group.rg.name
-
-  container_network_interface {
-    name = "guacd-np-nic"
-
-    ip_configuration {
-      name      = "guacd-np-ipconfig"
-      subnet_id = azurerm_subnet.guacdsubnet.id
-    }
-  }
-}
-
 resource "azurerm_container_group" "guacd-container" {
   name                = "${var.prefix}-guacd-container"
   location            = var.location
   resource_group_name = azurerm_resource_group.rg.name
   ip_address_type     = "Private"
-  network_profile_id  = azurerm_network_profile.guacd-np.id
+  subnet_ids          = [azurerm_subnet.guacdsubnet.id]
   os_type             = "Linux"
 
   container {
