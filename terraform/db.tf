@@ -41,7 +41,7 @@ resource "azurerm_mysql_flexible_server" "guacd-db" {
   delegated_subnet_id    = azurerm_subnet.sqlsubnet.id
   resource_group_name    = azurerm_resource_group.rg.name
   private_dns_zone_id    = azurerm_private_dns_zone.sql-private-dns.id
-  sku_name               = "B_Standard_B1s"
+  sku_name               = "B_Standard_B1ms"
   version                = "8.0.21"
   zone                   = "1"
   storage {
