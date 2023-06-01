@@ -29,3 +29,9 @@ variable "bastion_password" {
   type      = string
   sensitive = true
 }
+
+variable "euphrosyne_tools_url" {
+  description = "URL of Euphrosyne Tools service. Example : https://euphrosyne-tools-api-staging.osc-fr1.scalingo.io"
+  type        = string
+}
+
