@@ -22,6 +22,13 @@ resource "azurerm_storage_share" "common" {
   quota                = 10
 }
 
+
+resource "azurerm_storage_container" "container-project-data" {
+  name                  = "project-data"
+  storage_account_name  = azurerm_storage_account.sa.name
+  container_access_type = "private"
+}
+
 resource "azurerm_storage_container" "container-project-settings" {
   name                  = "project-settings"
   storage_account_name  = azurerm_storage_account.sa.name
@@ -30,12 +37,6 @@ resource "azurerm_storage_container" "container-project-settings" {
 
 resource "azurerm_storage_container" "container-static" {
   name                  = "static"
-  storage_account_name  = azurerm_storage_account.sa.name
-  container_access_type = "private"
-}
-
-resource "azurerm_storage_container" "container-images" {
-  name                  = "images"
   storage_account_name  = azurerm_storage_account.sa.name
   container_access_type = "private"
 }
