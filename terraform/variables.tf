@@ -35,3 +35,13 @@ variable "euphrosyne_tools_url" {
   type        = string
 }
 
+variable "image_registry_credential_username" {
+  description = "value of the username for the docker image registry"
+  type        = string
+}
+
+variable "image_registry_credential_password" {
+  description = "value of the access token for the docker image registry. Can be generated at https://app.docker.com/settings/personal-access-tokens"
+  type        = string
+  sensitive   = true
+}

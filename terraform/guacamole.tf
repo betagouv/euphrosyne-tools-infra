@@ -35,6 +35,12 @@ resource "azurerm_container_group" "guacd-container" {
       share_name           = azurerm_storage_share.guacd-storage-filetransfer.name
     }
   }
+
+  image_registry_credential {
+    server   = "index.docker.io"
+    username = var.image_registry_credential_username
+    password = var.image_registry_credential_password
+  }
 }
 
 // APP SERVICE
