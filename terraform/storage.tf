@@ -31,7 +31,7 @@ resource "azurerm_storage_container" "container-project-settings" {
 resource "azurerm_storage_container" "container-static" {
   name                  = "static"
   storage_account_name  = azurerm_storage_account.sa.name
-  container_access_type = "private"
+  container_access_type = "blob"
 }
 
 resource "azurerm_storage_container" "container-images" {
