@@ -58,18 +58,6 @@ resource "azurerm_key_vault" "key-vault" {
   }
 }
 
-# Use this token to secure external calls.
-resource "azurerm_key_vault_secret" "secret-api-key" {
-  name         = "secret-api-key"
-  value        = random_password.random-api-token.result
-  key_vault_id = azurerm_key_vault.key-vault.id
-}
-
-resource "random_password" "random-api-token" {
-  length           = 20
-  override_special = "-._~()'!*:@,;"
-}
-
 
 resource "azurerm_virtual_network" "vnet" {
   name                = "${var.prefix}-vm-vnet"
@@ -145,7 +133,7 @@ resource "azurerm_service_plan" "guac-service-plan" {
   resource_group_name = azurerm_resource_group.rg.name
   location            = var.location
   os_type             = "Linux"
-  sku_name            = "B2"
+  sku_name            = "B1"
 }
 
 // VM Images
