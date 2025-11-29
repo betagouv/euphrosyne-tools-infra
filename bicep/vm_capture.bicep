@@ -11,18 +11,18 @@ param imageDefinitionName string = 'euphrosyne-01-base-win-vm-image'
 param vmName string
 
 @description('Version')
-param version string 
+param version string
 
-resource gallery 'Microsoft.Compute/galleries/images/versions@2022-01-03' = {
+resource gallery 'Microsoft.Compute/galleries/images/versions@2024-03-03' = {
   name: '${galleryName}/${imageDefinitionName}/${version}'
-  location: location 
+  location: location
   properties: {
     publishingProfile: {
       replicaCount: 1
       targetRegions: [
         {
           name: location
-          regionalReplicaCount:1
+          regionalReplicaCount: 1
           storageAccountType: 'Standard_LRS'
         }
       ]
@@ -30,7 +30,7 @@ resource gallery 'Microsoft.Compute/galleries/images/versions@2022-01-03' = {
     }
     storageProfile: {
       source: {
-        id: resourceId('Microsoft.Compute/virtualMachines', vmName)
+        virtualMachineId: resourceId('Microsoft.Compute/virtualMachines', vmName)
       }
     }
   }
