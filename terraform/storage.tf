@@ -39,3 +39,9 @@ resource "azurerm_storage_container" "container-images" {
   storage_account_name  = azurerm_storage_account.sa.name
   container_access_type = "private"
 }
+
+resource "azurerm_storage_container" "euphrosyne-data-cool" {
+  name                  = "euphrosyne-data-cool"
+  storage_account_name  = azurerm_storage_account.sa.name
+  container_access_type = "blob"
+}
