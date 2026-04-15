@@ -21,8 +21,9 @@ param fileShareProjectFolder string = vmName
 @allowed([
   'Standard_B8ms'
   'Standard_B20ms'
+  'Standard_E16s_v5'
 ])
-@description('VM Size, can be Standard_B8ms or Standard_B20ms')
+@description('VM Size, can be Standard_B8ms, Standard_B20ms, or Standard_E16s_v5')
 param vmSize string = 'Standard_B8ms'
 
 @description('Name of account using the VM')
@@ -33,7 +34,7 @@ param accountName string
 param accountPassword string
 
 @description('Availibility zones')
-param zones array = [ '3' ]
+param zones array = ['3']
 
 @description('Image gallery to fetch the vm image')
 param imageGallery string = 'euphrostgvmimagegallery'
