@@ -9,6 +9,10 @@ terraform init -backend-config="key=<staging|production>.tfstate" -backend-confi
 terraform apply
 ```
 
+❗️ If switching to another between staging & production environment, add `-reconfigure` flag to `terraform init ...`.
+
+❗️ Create variable files to store your variables and pass it to terraform with `-var-file=./euphrosyne.staging.tfvars`.
+
 ## Authentification avec Azure
 
 Cette documentation est un condensé du tutoriel [Terraform Azure Example](https://learn.hashicorp.com/tutorials/terraform/azure-build?in=terraform/azure-get-started).
@@ -120,3 +124,14 @@ Microsoft.DBforMySQL
 
 Il est parfois nécessaire de lancer une deuxième fois pour les subnets se configures correctement.
 Lancez la commande `terraform plan` pour voir s'il y a des changements à apporter à l'infrastructure.
+
+> │ Error: making Read request on Azure KeyVault Secret euphro-prod-sql-secret-password: keyvault.BaseClient#GetSecret: Failure responding to request: StatusCode=403 -- Original Error: autorest/azure: Service returned an error. Status=403 Code="Forbidden" Message="The user, group or application 'appid=APPID;oid=OID;iss=ISS' does not have secrets get permission on key vault 'KEY_VAULT_NAME;location=westeurope'. For help resolving this issue, please see https://go.microsoft.com/fwlink/?linkid=2125287" InnerError={"code":"AccessDenied"}
+
+Il faut restaurer les permissions de la policy du key vault:
+
+```
+az keyvault set-policy \
+ --name KEY_VAULT_NAME \
+ --object-id OID \
+ --secret-permissions get list set delete backup restore recover purge
+```
