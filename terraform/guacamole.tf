@@ -18,7 +18,7 @@ resource "azurerm_container_group" "guacd-container" {
 
   container {
     name   = "guacd"
-    image  = "guacamole/guacd:1.5.1"
+    image  = "guacamole/guacd:1.6.0"
     cpu    = "1"
     memory = "2"
 
@@ -54,7 +54,7 @@ resource "azurerm_linux_web_app" "guacamole-web-app" {
   site_config {
     application_stack {
       docker_image     = "guacamole/guacamole"
-      docker_image_tag = "1.5.1"
+      docker_image_tag = "1.6.0"
     }
   }
 
