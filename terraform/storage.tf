@@ -45,3 +45,23 @@ resource "azurerm_storage_container" "euphrosyne-data-cool" {
   storage_account_name  = azurerm_storage_account.sa.name
   container_access_type = "private"
 }
+
+resource "azurerm_storage_management_policy" "euphrosyne-data-cool" {
+  storage_account_id = azurerm_storage_account.sa.id
+
+  rule {
+    name    = "force-euphrosyne-data-cool-tier"
+    enabled = true
+
+    filters {
+      blob_types   = ["blockBlob"]
+      prefix_match = ["${azurerm_storage_container.euphrosyne-data-cool.name}/"]
+    }
+
+    actions {
+      base_blob {
+        tier_to_cool_after_days_since_modification_greater_than = 0
+      }
+    }
+  }
+}
