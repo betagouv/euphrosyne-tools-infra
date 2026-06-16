@@ -22,8 +22,9 @@ param fileShareProjectFolder string = vmName
   'Standard_B8ms'
   'Standard_B20ms'
   'Standard_E16s_v5'
+  'Standard_NV12ads_A10_v5'
 ])
-@description('VM Size, can be Standard_B8ms, Standard_B20ms, or Standard_E16s_v5')
+@description('VM Size, can be Standard_B8ms, Standard_B20ms, Standard_E16s_v5, or Standard_NV12ads_A10_v5')
 param vmSize string = 'Standard_B8ms'
 
 @description('Name of account using the VM')
