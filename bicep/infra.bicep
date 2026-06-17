@@ -12,6 +12,9 @@ param vnetName string = '${resourcePrefix}-vm-vnet'
 @description('Name for the Virtual Subnet')
 param subnetName string = '${resourcePrefix}-vm-subnet'
 
+@description('Resource group containing the Virtual Network and Subnet')
+param subnetResourceGroupName string = resourceGroup().name
+
 @description('Name of the virtual machine.')
 param vmName string = 'simple-vm'
 
@@ -71,7 +74,7 @@ resource nic 'Microsoft.Network/networkInterfaces@2022-01-01' = {
         properties: {
           privateIPAllocationMethod: 'Dynamic'
           subnet: {
-            id: resourceId('Microsoft.Network/virtualNetworks/subnets', vnetName, subnetName)
+            id: resourceId(subnetResourceGroupName, 'Microsoft.Network/virtualNetworks/subnets', vnetName, subnetName)
           }
         }
       }

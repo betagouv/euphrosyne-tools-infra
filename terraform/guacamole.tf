@@ -70,10 +70,16 @@ resource "azurerm_linux_web_app" "guacamole-web-app" {
     "WEBSITE_VNET_ROUTE_ALL"     = "1"
     "MYSQL_AUTO_CREATE_ACCOUNTS" = "true"
   }
+
+  lifecycle {
+    ignore_changes = [
+      app_settings["WEBSITE_VNET_ROUTE_ALL"],
+      virtual_network_subnet_id,
+    ]
+  }
 }
 
 resource "azurerm_app_service_virtual_network_swift_connection" "guacamole-connection" {
   app_service_id = azurerm_linux_web_app.guacamole-web-app.id
   subnet_id      = azurerm_subnet.guacsubnet.id
 }
-
