@@ -32,6 +32,77 @@ function ConvertTo-PowerShellSingleQuotedString {
     return "'" + ($Value -replace "'", "''") + "'"
 }
 
+function Get-LocalGroupNameFromSid {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$Sid
+    )
+
+    $accountName = ([System.Security.Principal.SecurityIdentifier]$Sid).Translate(
+        [System.Security.Principal.NTAccount]
+    ).Value
+    return $accountName.Split("\")[-1]
+}
+
+function Ensure-ExpectedLocalUser {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$UserName,
+
+        [Parameter(Mandatory=$true)]
+        [string]$Password
+    )
+
+    $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
+    $existingUser = Get-LocalUser -Name $UserName -ErrorAction SilentlyContinue
+
+    if ($existingUser) {
+        Write-Host "Resetting local user $UserName."
+        Set-LocalUser -Name $UserName -Password $securePassword
+        Enable-LocalUser -Name $UserName
+    } else {
+        Write-Host "Creating local user $UserName."
+        New-LocalUser `
+            -Name $UserName `
+            -Password $securePassword `
+            -PasswordNeverExpires `
+            -UserMayNotChangePassword `
+            -Description "Euphrosyne VM user" | Out-Null
+    }
+
+    $administratorsGroup = Get-LocalGroupNameFromSid "S-1-5-32-544"
+    $remoteDesktopUsersGroup = Get-LocalGroupNameFromSid "S-1-5-32-555"
+
+    foreach ($groupName in @($administratorsGroup, $remoteDesktopUsersGroup)) {
+        $members = Get-LocalGroupMember -Group $groupName -ErrorAction SilentlyContinue
+        $memberExists = $members | Where-Object {
+            $_.Name -eq $UserName -or $_.Name -like "*\${UserName}"
+        }
+
+        if (-not $memberExists) {
+            Add-LocalGroupMember -Group $groupName -Member $UserName
+        }
+    }
+}
+
+function Disable-OtherNonBuiltInLocalUsers {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ExpectedUserName
+    )
+
+    $builtInLocalUserRidPattern = "-(500|501|503|504)$"
+
+    Get-LocalUser | Where-Object {
+        $_.Enabled -and
+        $_.Name -ne $ExpectedUserName -and
+        $_.SID.Value -notmatch $builtInLocalUserRidPattern
+    } | ForEach-Object {
+        Write-Host "Disabling local user $($_.Name)."
+        Disable-LocalUser -Name $_.Name
+    }
+}
+
 $normalizedDriveLetter = $DriveLetter.Trim()
 if (-not $normalizedDriveLetter.EndsWith(":")) {
     $normalizedDriveLetter = "${normalizedDriveLetter}:"
@@ -48,6 +119,9 @@ $taskName = "EuphrosyneMountDrive"
 $interactiveUsersGroupSid = "S-1-5-32-545"
 $storageEndpoint = "${StorageAccount}.file.core.windows.net"
 $sharePath = "\\${storageEndpoint}\${FileShare}\projects\${FileShareProjectFolder}"
+
+Ensure-ExpectedLocalUser -UserName $AccountName -Password $AccountPassword
+Disable-OtherNonBuiltInLocalUsers -ExpectedUserName $AccountName
 
 New-Item -ItemType Directory -Path $installDirectory -Force | Out-Null
 
