@@ -12,6 +12,9 @@ param vnetName string = '${resourcePrefix}-vm-vnet'
 @description('Name for the Virtual Subnet')
 param subnetName string = '${resourcePrefix}-vm-subnet'
 
+@description('Resource group containing the Virtual Network and Subnet')
+param subnetResourceGroupName string = resourceGroup().name
+
 @description('Name of the virtual machine.')
 param vmName string = 'simple-vm'
 
@@ -71,7 +74,7 @@ resource nic 'Microsoft.Network/networkInterfaces@2022-01-01' = {
         properties: {
           privateIPAllocationMethod: 'Dynamic'
           subnet: {
-            id: resourceId('Microsoft.Network/virtualNetworks/subnets', vnetName, subnetName)
+            id: resourceId(subnetResourceGroupName, 'Microsoft.Network/virtualNetworks/subnets', vnetName, subnetName)
           }
         }
       }
@@ -86,6 +89,13 @@ resource vm 'Microsoft.Compute/virtualMachines@2022-03-01' = {
   properties: {
     hardwareProfile: {
       vmSize: vmSize
+    }
+    securityProfile: {
+      securityType: 'TrustedLaunch'
+      uefiSettings: {
+        secureBootEnabled: true
+        vTpmEnabled: true
+      }
     }
     storageProfile: {
       osDisk: {
@@ -122,11 +132,10 @@ resource vm 'Microsoft.Compute/virtualMachines@2022-03-01' = {
       settings: any({
         fileUris: [
           'https://raw.githubusercontent.com/betagouv/euphrosyne-tools-infra/main/bicep/mountDrive.ps1'
-          'https://raw.githubusercontent.com/betagouv/euphrosyne-tools-infra/main/lib/PSTools/2.48/PsExec.exe'
         ]
       })
       protectedSettings: any({
-        commandToExecute: 'powershell -Command "Enable-PSRemoting -Force" ;.\\psexec -u ${accountName} -p ${accountPassword} -accepteula -h -i "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -File \${pwd}\\mountDrive.ps1 -FileShare ${fileShareName} -StorageAccountAccessKey ${storageAccount.listKeys().keys[0].value} -StorageAccount ${storageAccount.name} -FileShareProjectFolder ${fileShareProjectFolder}'
+        commandToExecute: 'powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\\mountDrive.ps1 -FileShare "${fileShareName}" -StorageAccountAccessKey "${storageAccount.listKeys().keys[0].value}" -StorageAccount "${storageAccount.name}" -FileShareProjectFolder "${fileShareProjectFolder}" -AccountName "${accountName}" -AccountPassword "${accountPassword}"'
       })
       publisher: 'Microsoft.Compute'
       type: 'CustomScriptExtension'

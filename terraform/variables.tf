@@ -15,6 +15,16 @@ variable "prefix" {
   default = "euphrosyne-01"
 }
 
+variable "regional_vm_networks" {
+  description = "Additional regional VM networks to peer with the core VNet"
+  type = map(object({
+    location           = string
+    address_space      = list(string)
+    vm_subnet_prefixes = list(string)
+  }))
+  default = {}
+}
+
 variable "admin_sql_user" {
   type    = string
   default = "euphrosyne"

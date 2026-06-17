@@ -13,19 +13,22 @@ param vmName string
 @description('Version')
 param version string
 
+@description('Regions where the image version should be replicated')
+param targetRegionNames array = [
+  location
+]
+
 resource gallery 'Microsoft.Compute/galleries/images/versions@2024-03-03' = {
   name: '${galleryName}/${imageDefinitionName}/${version}'
   location: location
   properties: {
     publishingProfile: {
       replicaCount: 1
-      targetRegions: [
-        {
-          name: location
-          regionalReplicaCount: 1
-          storageAccountType: 'Standard_LRS'
-        }
-      ]
+      targetRegions: [for targetRegionName in targetRegionNames: {
+        name: targetRegionName
+        regionalReplicaCount: 1
+        storageAccountType: 'Standard_LRS'
+      }]
       excludeFromLatest: false
     }
     storageProfile: {
