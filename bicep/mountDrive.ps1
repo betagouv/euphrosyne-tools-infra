@@ -45,6 +45,7 @@ if ($driveName.Length -ne 1) {
 $installDirectory = Join-Path $env:ProgramData "Euphrosyne"
 $mountScriptPath = Join-Path $installDirectory "MountDriveAtLogon.ps1"
 $taskName = "EuphrosyneMountDrive"
+$interactiveUsersGroupSid = "S-1-5-32-545"
 $storageEndpoint = "${StorageAccount}.file.core.windows.net"
 $sharePath = "\\${storageEndpoint}\${FileShare}\projects\${FileShareProjectFolder}"
 
@@ -93,11 +94,10 @@ Set-Content -Path $mountScriptPath -Value $mountScript -Encoding UTF8 -Force
 $action = New-ScheduledTaskAction `
     -Execute "powershell.exe" `
     -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$mountScriptPath`""
-$trigger = New-ScheduledTaskTrigger -AtLogOn -User $AccountName
+$trigger = New-ScheduledTaskTrigger -AtLogOn
 $principal = New-ScheduledTaskPrincipal `
-    -UserId $AccountName `
-    -LogonType Interactive `
-    -RunLevel Highest
+    -GroupId $interactiveUsersGroupSid `
+    -RunLevel Limited
 $settings = New-ScheduledTaskSettingsSet `
     -AllowStartIfOnBatteries `
     -StartWhenAvailable `
@@ -117,7 +117,7 @@ Register-ScheduledTask `
     -Description "Mount the Euphrosyne Azure Files project share at user logon." `
     -Force | Out-Null
 
-Write-Host "Registered scheduled task $taskName for $AccountName."
+Write-Host "Registered scheduled task $taskName for interactive users."
 
 try {
     & $mountScriptPath
