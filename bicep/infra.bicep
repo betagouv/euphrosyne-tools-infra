@@ -131,7 +131,7 @@ resource vm 'Microsoft.Compute/virtualMachines@2022-03-01' = {
     properties: {
       settings: any({
         fileUris: [
-          'https://raw.githubusercontent.com/betagouv/euphrosyne-tools-infra/main/bicep/mountDrive.ps1'
+          'https://raw.githubusercontent.com/betagouv/euphrosyne-tools-infra/refs/heads/feat/tomo-infra-bicep/bicep/mountDrive.ps1'
         ]
       })
       protectedSettings: any({
