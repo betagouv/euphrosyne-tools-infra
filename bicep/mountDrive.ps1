@@ -67,6 +67,7 @@ Set-StrictMode -Version Latest
 `$storageAccount = ${storageAccountLiteral}
 `$storageAccountAccessKey = ${storageAccountAccessKeyLiteral}
 `$sharePath = ${sharePathLiteral}
+`$driveRoot = `$driveLetter + "\"
 
 Write-Host "Removing existing mapping on `$driveLetter if present."
 & net.exe use `$driveLetter /delete /y | Out-Null
@@ -86,6 +87,24 @@ Write-Host "Mapping `$driveLetter to `$sharePath."
 & net.exe use `$driveLetter `$sharePath /persistent:yes
 if (`$LASTEXITCODE -ne 0) {
     throw "net use failed with exit code `${LASTEXITCODE}."
+}
+
+Write-Host "Warming up `$driveRoot so Explorer does not show a stale disconnected state."
+`$warmupSucceeded = `$false
+for (`$attempt = 1; `$attempt -le 5; `$attempt++) {
+    if (Test-Path -LiteralPath `$driveRoot -ErrorAction SilentlyContinue) {
+        Get-ChildItem -LiteralPath `$driveRoot -Force -ErrorAction SilentlyContinue |
+            Select-Object -First 1 |
+            Out-Null
+        `$warmupSucceeded = `$true
+        break
+    }
+
+    Start-Sleep -Seconds 2
+}
+
+if (-not `$warmupSucceeded) {
+    Write-Warning "Mapped drive `$driveRoot was not reachable during warm-up. It should still reconnect on first access."
 }
 "@
 
