@@ -60,6 +60,10 @@ var defaultTags = {
   fromTemplate: 'true'
 }
 
+// Windows VMs support only one Microsoft.Compute.CustomScriptExtension handler.
+// Capture updates this same extension resource to run pre-capture cleanup.
+var customScriptExtensionName = 'mountedDriveManagementExtension'
+
 resource storageAccount 'Microsoft.Storage/storageAccounts@2022-05-01' existing = {
   name: storageAccountName
 }
@@ -125,8 +129,8 @@ resource vm 'Microsoft.Compute/virtualMachines@2022-03-01' = {
   zones: zones
   tags: defaultTags
 
-  resource vmMountDriveExtension 'extensions@2022-08-01' = {
-    name: 'mountDriveExtension'
+  resource vmCustomScriptExtension 'extensions@2022-08-01' = {
+    name: customScriptExtensionName
     location: location
     properties: {
       settings: any({
