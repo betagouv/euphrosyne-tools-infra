@@ -18,6 +18,37 @@ param targetRegionNames array = [
   location
 ]
 
+@description('Force update tag for the cleanup extension so it reruns on each capture deployment')
+param cleanupForceUpdateTag string = utcNow()
+
+// Windows VMs support only one Microsoft.Compute.CustomScriptExtension handler.
+// This must match the extension resource created by infra.bicep.
+var customScriptExtensionName = 'mountedDriveManagementExtension'
+
+resource sourceVm 'Microsoft.Compute/virtualMachines@2022-03-01' existing = {
+  name: vmName
+}
+
+resource cleanupBeforeCaptureExtension 'Microsoft.Compute/virtualMachines/extensions@2022-08-01' = {
+  parent: sourceVm
+  name: customScriptExtensionName
+  location: location
+  properties: {
+    settings: any({
+      fileUris: [
+        'https://raw.githubusercontent.com/betagouv/euphrosyne-tools-infra/refs/heads/feat/tomo-infra-bicep/bicep/cleanupBeforeCapture.ps1'
+      ]
+    })
+    protectedSettings: any({
+      commandToExecute: 'powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\\cleanupBeforeCapture.ps1'
+    })
+    publisher: 'Microsoft.Compute'
+    type: 'CustomScriptExtension'
+    typeHandlerVersion: '1.10'
+    forceUpdateTag: cleanupForceUpdateTag
+  }
+}
+
 resource gallery 'Microsoft.Compute/galleries/images/versions@2024-03-03' = {
   name: '${galleryName}/${imageDefinitionName}/${version}'
   location: location
@@ -33,8 +64,11 @@ resource gallery 'Microsoft.Compute/galleries/images/versions@2024-03-03' = {
     }
     storageProfile: {
       source: {
-        virtualMachineId: resourceId('Microsoft.Compute/virtualMachines', vmName)
+        virtualMachineId: sourceVm.id
       }
     }
   }
+  dependsOn: [
+    cleanupBeforeCaptureExtension
+  ]
 }
