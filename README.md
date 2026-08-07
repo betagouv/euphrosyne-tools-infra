@@ -48,6 +48,17 @@ export ARM_TENANT_ID="<TENANT_VALUE>"
 
 Ces variables seront utilisées lors de l'exécution de la commande `terraform apply`. Le paramétrage du backet et `terraform init` utilise la `access_key` (voir section Initalisation de Terraform).
 
+## Pool de sessions Albert
+
+Le pool Python utilisé par le spike Albert/TRAUPIXE est désactivé par défaut. Pour
+le créer dans un environnement, `create_albert_session_pool` doit être `true`.
+
+Après l'application, récupérer l'URL à fournir à Tools API :
+
+```bash
+terraform output -raw albert_session_pool_endpoint
+```
+
 ## Préparation du `backend` azurem pour Terraform
 
 Un [backend](https://www.terraform.io/language/settings/backends/configuration) définit où Terraform sauvegarde l'état des ressources qu'il gère.

@@ -1,5 +1,9 @@
 terraform {
   required_providers {
+    azapi = {
+      source  = "Azure/azapi"
+      version = "2.10.0"
+    }
     azurerm = {
       source  = "hashicorp/azurerm"
       version = "~> 3.44.1"
@@ -19,6 +23,10 @@ terraform {
 provider "azurerm" {
   features {}
   skip_provider_registration = true
+}
+
+provider "azapi" {
+  skip_provider_registration = false
 }
 
 provider "random" {
