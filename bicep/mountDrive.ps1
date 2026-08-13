@@ -9,7 +9,15 @@ param(
     [string]$StorageAccount,
 
     [Parameter(Mandatory=$true)]
-    [string]$FileShareProjectFolder
+    [string]$FileShareProjectFolder,
+
+    [Parameter(Mandatory=$true)]
+    [string]$AccountName,
+
+    [Parameter(Mandatory=$true)]
+    [string]$AccountPassword,
+
+    [string]$DriveLetter = "Z:"
 )
 
 Set-StrictMode -Version Latest
