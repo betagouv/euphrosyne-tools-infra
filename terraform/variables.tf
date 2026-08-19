@@ -15,6 +15,12 @@ variable "prefix" {
   default = "euphrosyne-01"
 }
 
+variable "create_albert_session_pool" {
+  description = "Whether to create the temporary Python session pool used by Albert API."
+  type        = bool
+  default     = false
+}
+
 variable "regional_vm_networks" {
   description = "Additional regional VM networks to peer with the core VNet"
   type = map(object({

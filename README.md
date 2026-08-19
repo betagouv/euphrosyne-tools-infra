@@ -48,6 +48,17 @@ export ARM_TENANT_ID="<TENANT_VALUE>"
 
 Ces variables seront utilisées lors de l'exécution de la commande `terraform apply`. Le paramétrage du backet et `terraform init` utilise la `access_key` (voir section Initalisation de Terraform).
 
+## Pool de sessions Albert
+
+Le pool Python utilisé par le spike Albert/TRAUPIXE est désactivé par défaut. Pour
+le créer dans un environnement, `create_albert_session_pool` doit être `true`.
+
+Après l'application, récupérer l'URL à fournir à Tools API :
+
+```bash
+terraform output -raw albert_session_pool_endpoint
+```
+
 ## Préparation du `backend` azurem pour Terraform
 
 Un [backend](https://www.terraform.io/language/settings/backends/configuration) définit où Terraform sauvegarde l'état des ressources qu'il gère.
@@ -98,6 +109,20 @@ sudo mysql --host="{DB_HOST}" --user="euphrosyne" --password="{PASSWORD}" --data
 ```bash
 az ts create --name vmSpec --version "[version]" --resource-group [resourceGroupeName] --location "[location]" --template-file "./bicep/infra.bicep"
 ```
+
+## Provisioning a Windows VM desktop user and project drive
+
+`bicep/infra.bicep` runs `bicep/mountDrive.ps1` with the Azure Custom Script Extension to prepare the Windows desktop user and mount one Azure Files project folder as `Z:`.
+
+Mounted path:
+
+```text
+\\<storage-account>.file.core.windows.net\<file-share>\projects\<fileShareProjectFolder>
+```
+
+The extension creates or updates the local desktop user, enables it, adds it to `Users` and `Remote Desktop Users`, and removes it from `Administrators`. Existing profiles are preserved. The administrator account, for example `euphrosyne-admin`, is managed separately.
+
+The extension installs `C:\ProgramData\Euphrosyne\MountDriveAtLogon.ps1` and registers the `EuphrosyneMountDrive` scheduled task for the exact desktop account, for example `TOMOGRAPHIE\euphrosyne`. The task mounts it when the user logs on, using a non-elevated interactive session. The task cleans stale mappings, waits for TCP `445`, saves the Azure Files credential with `cmdkey`, maps with `/persistent:no`, and logs to `C:\ProgramData\Euphrosyne\Logs\MountDriveAtLogon.log`.
 
 ## Troubleshooting / Résolution des problèmes
 
