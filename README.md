@@ -99,6 +99,12 @@ sudo mysql --host="{DB_HOST}" --user="euphrosyne" --password="{PASSWORD}" --data
 az ts create --name vmSpec --version "[version]" --resource-group [resourceGroupeName] --location "[location]" --template-file "./bicep/infra.bicep"
 ```
 
+## VM security type
+
+`bicep/infra.bicep` takes a `securityType` parameter, `Standard` by default. A VM must match the `SecurityType` feature of its image definition, otherwise Azure refuses the deployment. When a `vmSpec` version declares this parameter, `euphrosyne-tools-api` reads the feature from the image definition and passes the value on deploy.
+
+This feature cannot be changed on an existing image definition.
+
 ## Provisioning a Windows VM desktop user and project drive
 
 `bicep/infra.bicep` runs `bicep/mountDrive.ps1` with the Azure Custom Script Extension to prepare the Windows desktop user and mount one Azure Files project folder as `Z:`.

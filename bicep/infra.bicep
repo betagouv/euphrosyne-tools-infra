@@ -49,6 +49,13 @@ param imageDefinition string = 'euphro-stg-base-win-vm-image'
 @description('Version used for the image, default to latest')
 param imageVersion string = 'latest'
 
+@allowed([
+  'Standard'
+  'TrustedLaunch'
+])
+@description('VM security type, must match the SecurityType feature of the image definition')
+param securityType string = 'Standard'
+
 @description('FileShare name')
 param fileShareName string
 
@@ -94,13 +101,13 @@ resource vm 'Microsoft.Compute/virtualMachines@2022-03-01' = {
     hardwareProfile: {
       vmSize: vmSize
     }
-    securityProfile: {
+    securityProfile: securityType == 'TrustedLaunch' ? {
       securityType: 'TrustedLaunch'
       uefiSettings: {
         secureBootEnabled: true
         vTpmEnabled: true
       }
-    }
+    } : null
     storageProfile: {
       osDisk: {
         createOption: 'fromImage'
