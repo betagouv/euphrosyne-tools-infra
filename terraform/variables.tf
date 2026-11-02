@@ -25,12 +25,6 @@ variable "regional_vm_networks" {
   default = {}
 }
 
-variable "guacd_filetransfer_quota" {
-  description = "Quota of the guacd file transfer share, in GB"
-  type        = number
-  default     = 50
-}
-
 variable "admin_sql_user" {
   type    = string
   default = "euphrosyne"
