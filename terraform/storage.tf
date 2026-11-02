@@ -10,10 +10,15 @@ resource "azurerm_storage_account" "sa" {
   }
 }
 
+// Holds the scientific data despite its name. Renaming it would recreate the share.
 resource "azurerm_storage_share" "guacd-storage-filetransfer" {
   name                 = "${var.prefix}-guacd-filestransfer"
   storage_account_name = azurerm_storage_account.sa.name
-  quota                = 50
+  quota                = 102400
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "azurerm_storage_share" "common" {

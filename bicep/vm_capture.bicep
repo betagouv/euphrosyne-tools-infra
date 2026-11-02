@@ -36,7 +36,7 @@ resource cleanupBeforeCaptureExtension 'Microsoft.Compute/virtualMachines/extens
   properties: {
     settings: any({
       fileUris: [
-        'https://raw.githubusercontent.com/betagouv/euphrosyne-tools-infra/refs/heads/feat/tomo-infra-bicep/bicep/cleanupBeforeCapture.ps1'
+        'https://raw.githubusercontent.com/betagouv/euphrosyne-tools-infra/ac93bd0e95df899259849b2aaea8624fe8ef57b8/bicep/cleanupBeforeCapture.ps1'
       ]
     })
     protectedSettings: any({
