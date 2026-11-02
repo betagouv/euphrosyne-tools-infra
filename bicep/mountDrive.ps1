@@ -102,29 +102,6 @@ function Add-LocalGroupMemberIfMissing {
     }
 }
 
-function Remove-LocalGroupMemberIfPresent {
-    param(
-        [Parameter(Mandatory=$true)]
-        [object]$Group,
-
-        [Parameter(Mandatory=$true)]
-        [System.Security.Principal.SecurityIdentifier]$MemberSid,
-
-        [Parameter(Mandatory=$true)]
-        [string]$FallbackMemberName
-    )
-
-    if (-not (Test-LocalGroupMemberSid -Group $Group -MemberSid $MemberSid)) {
-        return
-    }
-
-    try {
-        Remove-LocalGroupMember -Group $Group.Name -Member $MemberSid.Value -ErrorAction Stop
-    } catch {
-        Remove-LocalGroupMember -Group $Group.Name -Member $FallbackMemberName -ErrorAction Stop
-    }
-}
-
 function Grant-PathAcl {
     param(
         [Parameter(Mandatory=$true)]
@@ -174,7 +151,6 @@ if ($existingUser) {
 $interactiveUser = Get-LocalUser -Name $AccountName
 $interactiveUserSid = $interactiveUser.SID
 
-$administratorsGroup = Get-LocalGroupByWellKnownSid -Sid $administratorsGroupSid
 $usersGroup = Get-LocalGroupByWellKnownSid -Sid $usersGroupSid
 $remoteDesktopUsersGroup = Get-LocalGroupByWellKnownSid -Sid $remoteDesktopUsersGroupSid
 
@@ -186,12 +162,8 @@ Add-LocalGroupMemberIfMissing `
     -Group $remoteDesktopUsersGroup `
     -MemberSid $interactiveUserSid `
     -FallbackMemberName $taskUser
-Remove-LocalGroupMemberIfPresent `
-    -Group $administratorsGroup `
-    -MemberSid $interactiveUserSid `
-    -FallbackMemberName $taskUser
 
-Write-Host "Ensured $AccountName is a standard Remote Desktop user."
+Write-Host "Ensured $AccountName is a Remote Desktop user."
 
 New-Item -ItemType Directory -Path $installDirectory -Force | Out-Null
 New-Item -ItemType Directory -Path $logDirectory -Force | Out-Null
