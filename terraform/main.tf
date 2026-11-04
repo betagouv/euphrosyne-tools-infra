@@ -40,21 +40,25 @@ resource "azurerm_key_vault" "key-vault" {
   soft_delete_retention_days = 7
   purge_protection_enabled   = false
 
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
+  dynamic "access_policy" {
+    for_each = toset(var.key_vault_secret_manager_object_ids)
 
-    key_permissions = [
-      "Get"
-    ]
+    content {
+      tenant_id = data.azurerm_client_config.current.tenant_id
+      object_id = access_policy.value
 
-    secret_permissions = [
-      "Get", "Backup", "Delete", "List", "Purge", "Recover", "Restore", "Set",
-    ]
+      key_permissions = [
+        "Get"
+      ]
 
-    storage_permissions = [
-      "Get"
-    ]
+      secret_permissions = [
+        "Get", "Backup", "Delete", "List", "Purge", "Recover", "Restore", "Set",
+      ]
+
+      storage_permissions = [
+        "Get"
+      ]
+    }
   }
 }
 
