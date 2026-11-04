@@ -39,13 +39,15 @@ Creating role assignments needs `Owner` or `User Access Administrator`, which ma
 | Identity | Role | Scope |
 | --- | --- | --- |
 | `ci-staging` | `Contributor` | resource group `Euphrosyne_staging` |
-| `ci-staging` | `Storage Blob Data Contributor` | container holding `staging.tfstate` |
+| `ci-staging` | `Storage Blob Data Contributor` | container `tfstate-staging` |
 | `ci-staging-plan` | `Reader` | resource group `Euphrosyne_staging` |
-| `ci-staging-plan` | `Storage Blob Data Reader` | container holding `staging.tfstate` |
+| `ci-staging-plan` | `Storage Blob Data Reader` | container `tfstate-staging` |
 | `ci-prod-plan` | `Reader` | resource group `Euphrosyne` |
-| `ci-prod-plan` | `Storage Blob Data Reader` | container holding `production.tfstate` |
+| `ci-prod-plan` | `Storage Blob Data Reader` | container `tfstate-production` |
 | `ci-prod-apply` | `Contributor` | resource group `Euphrosyne` |
-| `ci-prod-apply` | `Storage Blob Data Contributor` | container holding `production.tfstate` |
+| `ci-prod-apply` | `Storage Blob Data Contributor` | container `tfstate-production` |
+
+Each environment state gets its own container, because data roles cannot be scoped below a container: `tfstate-staging` for `staging.tfstate` and `tfstate-production` for `production.tfstate`. Both states currently sit in the `tfstate` container and must be migrated before these roles are granted. No CI identity gets access to `tfstate-ci`.
 
 `Reader` is not enough for a plan: refreshing the storage account, the web app and the Key Vault secret calls list actions (`listKeys`, app settings, secret `Get`). The plan identities will need a custom role adding those actions, defined once the pull request plans run.
 
