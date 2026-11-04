@@ -42,6 +42,30 @@ function Get-CmdKeyTargetName {
     return $target.Trim('"')
 }
 
+function Invoke-SchTasks {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string[]]$Arguments
+    )
+
+    # Windows PowerShell turns redirected native stderr into errors, which "Stop" would make fatal.
+    $ErrorActionPreference = "Continue"
+    $output = & schtasks.exe @Arguments 2>&1
+    return [pscustomobject]@{
+        ExitCode = $LASTEXITCODE
+        Output = ($output | Out-String).Trim()
+    }
+}
+
+function Test-ScheduledTaskPresent {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$Name
+    )
+
+    return (Invoke-SchTasks -Arguments @("/query", "/tn", $Name)).ExitCode -eq 0
+}
+
 $normalizedDriveLetter = Normalize-DriveLetter -Value $DriveLetter
 $driveName = $normalizedDriveLetter.TrimEnd(":")
 $installDirectory = Join-Path $env:ProgramData "Euphrosyne"
@@ -69,9 +93,12 @@ if ($existingDrive) {
 }
 
 Write-Host "Unregistering scheduled task $TaskName if present."
-$existingTask = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
-if ($existingTask) {
-    Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false
+# Get-ScheduledTask returned nothing for an existing task during a staging capture, so use schtasks.exe.
+if (Test-ScheduledTaskPresent -Name $TaskName) {
+    $deleteResult = Invoke-SchTasks -Arguments @("/delete", "/tn", $TaskName, "/f")
+    if ($deleteResult.ExitCode -ne 0) {
+        throw "Failed to delete scheduled task $TaskName. schtasks exited with $($deleteResult.ExitCode): $($deleteResult.Output)"
+    }
     Write-Host "Unregistered scheduled task $TaskName."
 } else {
     Write-Host "Scheduled task $TaskName was not present."
@@ -129,6 +156,10 @@ if (Test-Path -LiteralPath $installDirectory) {
 
 if (Test-Path -LiteralPath $mountScriptPath) {
     throw "Generated mount script still exists after cleanup: $mountScriptPath"
+}
+
+if (Test-ScheduledTaskPresent -Name $TaskName) {
+    throw "Scheduled task still exists after cleanup: $TaskName"
 }
 
 Write-Host "Euphrosyne pre-capture cleanup completed."
