@@ -40,3 +40,13 @@ variable "image_registry_credential_password" {
   type        = string
   sensitive   = true
 }
+
+variable "key_vault_secret_manager_object_ids" {
+  description = "Entra object IDs of the people and CI identities that manage Key Vault secrets. Listed explicitly so that running Terraform as another identity does not replace the access policy."
+  type        = list(string)
+
+  validation {
+    condition     = length(var.key_vault_secret_manager_object_ids) > 0
+    error_message = "At least one object ID must manage the Key Vault secrets."
+  }
+}
