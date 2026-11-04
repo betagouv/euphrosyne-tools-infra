@@ -119,6 +119,20 @@ The extension creates or updates the local desktop user, enables it, and adds it
 
 The extension installs `C:\ProgramData\Euphrosyne\MountDriveAtLogon.ps1` and registers the `EuphrosyneMountDrive` scheduled task for the exact desktop account, for example `TOMOGRAPHIE\euphrosyne`. The task mounts it when the user logs on, using a non-elevated interactive session. The task cleans stale mappings, waits for TCP `445`, saves the Azure Files credential with `cmdkey`, maps with `/persistent:no`, and logs to `C:\ProgramData\Euphrosyne\Logs\MountDriveAtLogon.log`.
 
+## Network security groups
+
+`terraform/network_security_groups.tf` attaches an NSG to the VM subnets, the guacd subnet and the MySQL subnet. Without them, Azure allows all traffic inside the VNet and its peerings.
+
+Allowed flows inside the VNet:
+
+| From | To | Port |
+| --- | --- | --- |
+| Guacamole web app subnet | guacd | TCP `4822` |
+| Guacamole web app subnet | MySQL | TCP `3306` |
+| guacd subnet | VMs, in every regional VM subnet | TCP `3389` |
+
+All other traffic coming from the VNet is denied, and VMs cannot open connections to the VNet: a project VM cannot reach another VM, guacd or MySQL. Traffic from VMs to Azure Storage and Internet is not restricted by these rules. The MySQL initialisation script above must therefore run from the Guacamole subnet, or after a temporary rule.
+
 ## Troubleshooting / Résolution des problèmes
 
 > A resource with the ID "/subscriptions/ID/resourceGroups/RG" already exists - to be managed via Terraform this resource needs to be imported into the State.
