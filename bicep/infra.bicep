@@ -49,6 +49,13 @@ param imageDefinition string = 'euphro-stg-base-win-vm-image'
 @description('Version used for the image, default to latest')
 param imageVersion string = 'latest'
 
+@allowed([
+  'Standard'
+  'TrustedLaunch'
+])
+@description('VM security type, must match the SecurityType feature of the image definition')
+param securityType string = 'Standard'
+
 @description('FileShare name')
 param fileShareName string
 
@@ -59,6 +66,10 @@ var defaultTags = {
   vmName: vmName
   fromTemplate: 'true'
 }
+
+// Windows VMs support only one Microsoft.Compute.CustomScriptExtension handler.
+// Capture updates this same extension resource to run pre-capture cleanup.
+var customScriptExtensionName = 'mountedDriveManagementExtension'
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2022-05-01' existing = {
   name: storageAccountName
@@ -90,13 +101,13 @@ resource vm 'Microsoft.Compute/virtualMachines@2022-03-01' = {
     hardwareProfile: {
       vmSize: vmSize
     }
-    securityProfile: {
+    securityProfile: securityType == 'TrustedLaunch' ? {
       securityType: 'TrustedLaunch'
       uefiSettings: {
         secureBootEnabled: true
         vTpmEnabled: true
       }
-    }
+    } : null
     storageProfile: {
       osDisk: {
         createOption: 'fromImage'
@@ -125,13 +136,13 @@ resource vm 'Microsoft.Compute/virtualMachines@2022-03-01' = {
   zones: zones
   tags: defaultTags
 
-  resource vmMountDriveExtension 'extensions@2022-08-01' = {
-    name: 'mountDriveExtension'
+  resource vmCustomScriptExtension 'extensions@2022-08-01' = {
+    name: customScriptExtensionName
     location: location
     properties: {
       settings: any({
         fileUris: [
-          'https://raw.githubusercontent.com/betagouv/euphrosyne-tools-infra/main/bicep/mountDrive.ps1'
+          'https://raw.githubusercontent.com/betagouv/euphrosyne-tools-infra/3dd838b9c35d29077e5bf5a0137cdb089bfa28b4/bicep/mountDrive.ps1'
         ]
       })
       protectedSettings: any({
