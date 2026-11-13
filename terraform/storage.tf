@@ -12,9 +12,9 @@ resource "azurerm_storage_account" "sa" {
 
 // Holds the scientific data despite its name. Renaming it would recreate the share.
 resource "azurerm_storage_share" "guacd-storage-filetransfer" {
-  name                 = "${var.prefix}-guacd-filestransfer"
-  storage_account_name = azurerm_storage_account.sa.name
-  quota                = 102400
+  name               = "${var.prefix}-guacd-filestransfer"
+  storage_account_id = azurerm_storage_account.sa.id
+  quota              = 102400
 
   lifecycle {
     prevent_destroy = true
@@ -22,32 +22,32 @@ resource "azurerm_storage_share" "guacd-storage-filetransfer" {
 }
 
 resource "azurerm_storage_share" "common" {
-  name                 = "${var.prefix}-common"
-  storage_account_name = azurerm_storage_account.sa.name
-  quota                = 10
+  name               = "${var.prefix}-common"
+  storage_account_id = azurerm_storage_account.sa.id
+  quota              = 10
 }
 
 resource "azurerm_storage_container" "container-project-settings" {
   name                  = "project-settings"
-  storage_account_name  = azurerm_storage_account.sa.name
+  storage_account_id    = azurerm_storage_account.sa.id
   container_access_type = "private"
 }
 
 resource "azurerm_storage_container" "container-static" {
   name                  = "static"
-  storage_account_name  = azurerm_storage_account.sa.name
+  storage_account_id    = azurerm_storage_account.sa.id
   container_access_type = "blob"
 }
 
 resource "azurerm_storage_container" "container-images" {
   name                  = "images"
-  storage_account_name  = azurerm_storage_account.sa.name
+  storage_account_id    = azurerm_storage_account.sa.id
   container_access_type = "private"
 }
 
 resource "azurerm_storage_container" "euphrosyne-data-cool" {
   name                  = "euphrosyne-data-cool"
-  storage_account_name  = azurerm_storage_account.sa.name
+  storage_account_id    = azurerm_storage_account.sa.id
   container_access_type = "private"
 }
 
