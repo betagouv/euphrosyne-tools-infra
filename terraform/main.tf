@@ -90,6 +90,9 @@ resource "azurerm_subnet" "guacsubnet" {
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = ["10.0.2.0/24"]
 
+  // Keep the azurerm 3 default (azurerm 4+ defaults to "Disabled").
+  private_endpoint_network_policies = "Enabled"
+
   service_endpoint {
     service = "Microsoft.Storage"
   }
@@ -110,6 +113,9 @@ resource "azurerm_subnet" "sqlsubnet" {
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = ["10.0.3.0/24"]
 
+  // Keep the azurerm 3 default (azurerm 4+ defaults to "Disabled").
+  private_endpoint_network_policies = "Enabled"
+
   delegation {
     name = "dlg-Microsoft.DBforMySQL-flexibleServers"
 
@@ -125,6 +131,9 @@ resource "azurerm_subnet" "guacdsubnet" {
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = ["10.0.4.0/24"]
+
+  // Keep the azurerm 3 default (azurerm 4+ defaults to "Disabled").
+  private_endpoint_network_policies = "Enabled"
 
   service_endpoint {
     service = "Microsoft.Storage"

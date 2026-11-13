@@ -5,6 +5,11 @@ resource "azurerm_storage_account" "sa" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
+  // Keep the azurerm 3 defaults (azurerm 4+ defaults both to false).
+  // Public nested items are required by the "static" container (access type "blob").
+  allow_nested_items_to_be_public  = true
+  cross_tenant_replication_enabled = true
+
   network_rules {
     default_action = "Allow"
   }
