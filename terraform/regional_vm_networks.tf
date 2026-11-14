@@ -15,9 +15,11 @@ resource "azurerm_subnet" "regional_vm" {
   virtual_network_name = azurerm_virtual_network.regional_vm[each.key].name
   address_prefixes     = each.value.vm_subnet_prefixes
 
-  private_endpoint_network_policies_enabled = true
+  private_endpoint_network_policies = "Enabled"
 
-  service_endpoints = ["Microsoft.Storage"]
+  service_endpoint {
+    service = "Microsoft.Storage"
+  }
 }
 
 resource "azurerm_virtual_network_peering" "core_to_regional" {

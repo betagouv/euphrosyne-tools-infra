@@ -53,8 +53,8 @@ resource "azurerm_linux_web_app" "guacamole-web-app" {
 
   site_config {
     application_stack {
-      docker_image     = "guacamole/guacamole"
-      docker_image_tag = "1.6.0"
+      docker_image_name   = "guacamole/guacamole:1.6.0"
+      docker_registry_url = "https://index.docker.io"
     }
   }
 

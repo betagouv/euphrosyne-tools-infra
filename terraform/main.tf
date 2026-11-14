@@ -2,7 +2,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 3.44.1"
+      version = "~> 5.13.0"
     }
     random = {}
   }
@@ -18,7 +18,7 @@ terraform {
 
 provider "azurerm" {
   features {}
-  skip_provider_registration = true
+  resource_provider_registrations = "none"
 }
 
 provider "random" {
@@ -39,6 +39,7 @@ resource "azurerm_key_vault" "key-vault" {
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days = 7
   purge_protection_enabled   = false
+  rbac_authorization_enabled = false
 
   dynamic "access_policy" {
     for_each = toset(var.key_vault_secret_manager_object_ids)
@@ -76,9 +77,11 @@ resource "azurerm_subnet" "vmsubnet" {
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = ["10.0.1.0/24"]
 
-  private_endpoint_network_policies_enabled = true
+  private_endpoint_network_policies = "Enabled"
 
-  service_endpoints = ["Microsoft.Storage"]
+  service_endpoint {
+    service = "Microsoft.Storage"
+  }
 }
 
 resource "azurerm_subnet" "guacsubnet" {
@@ -86,7 +89,13 @@ resource "azurerm_subnet" "guacsubnet" {
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = ["10.0.2.0/24"]
-  service_endpoints    = ["Microsoft.Storage"]
+
+  // Keep the azurerm 3 default (azurerm 4+ defaults to "Disabled").
+  private_endpoint_network_policies = "Enabled"
+
+  service_endpoint {
+    service = "Microsoft.Storage"
+  }
 
   delegation {
     name = "delegation"
@@ -104,6 +113,9 @@ resource "azurerm_subnet" "sqlsubnet" {
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = ["10.0.3.0/24"]
 
+  // Keep the azurerm 3 default (azurerm 4+ defaults to "Disabled").
+  private_endpoint_network_policies = "Enabled"
+
   delegation {
     name = "dlg-Microsoft.DBforMySQL-flexibleServers"
 
@@ -120,7 +132,12 @@ resource "azurerm_subnet" "guacdsubnet" {
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = ["10.0.4.0/24"]
 
-  service_endpoints = ["Microsoft.Storage"]
+  // Keep the azurerm 3 default (azurerm 4+ defaults to "Disabled").
+  private_endpoint_network_policies = "Enabled"
+
+  service_endpoint {
+    service = "Microsoft.Storage"
+  }
 
   delegation {
     name = "delegation"

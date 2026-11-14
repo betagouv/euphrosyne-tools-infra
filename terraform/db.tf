@@ -13,11 +13,10 @@ resource "azurerm_private_dns_zone" "sql-private-dns" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "sql-private-dns-to-vnet" {
-  name                  = "${var.prefix}-sql-private-dns-vn-link"
-  private_dns_zone_name = azurerm_private_dns_zone.sql-private-dns.name
-  resource_group_name   = azurerm_resource_group.rg.name
-  registration_enabled  = false
-  virtual_network_id    = azurerm_virtual_network.vnet.id
+  name                 = "${var.prefix}-sql-private-dns-vn-link"
+  private_dns_zone_id  = azurerm_private_dns_zone.sql-private-dns.id
+  registration_enabled = false
+  virtual_network_id   = azurerm_virtual_network.vnet.id
 }
 
 // SQL Server
