@@ -50,3 +50,14 @@ variable "key_vault_secret_manager_object_ids" {
     error_message = "At least one object ID must manage the Key Vault secrets."
   }
 }
+
+variable "key_vault_secret_expiration_date" {
+  description = "Expiration date (RFC 3339, UTC) applied to Key Vault secrets. Matches the 6-month secret rotation: renew it each time the secrets are rotated."
+  type        = string
+  default     = "2027-05-31T00:00:00Z"
+
+  validation {
+    condition     = can(formatdate("YYYY", var.key_vault_secret_expiration_date))
+    error_message = "Must be an RFC 3339 timestamp such as 2027-05-31T00:00:00Z."
+  }
+}
