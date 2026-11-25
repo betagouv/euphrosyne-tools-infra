@@ -52,6 +52,8 @@ resource "azurerm_linux_web_app" "guacamole-web-app" {
   https_only          = true
 
   site_config {
+    vnet_route_all_enabled = true
+
     application_stack {
       docker_image_name   = "guacamole/guacamole:1.6.0"
       docker_registry_url = "https://index.docker.io"
@@ -64,16 +66,12 @@ resource "azurerm_linux_web_app" "guacamole-web-app" {
     "MYSQL_DATABASE"             = azurerm_mysql_flexible_database.guacd-db.name
     "MYSQL_USER"                 = var.admin_sql_user
     "MYSQL_PASSWORD"             = azurerm_key_vault_secret.sql-secret-password.value
-    "EXTENSIONS"                 = "auth-header"
-    "HEADER_ENABLED"             = "true"
     "WEBSITE_DNS_SERVER"         = "168.63.129.16"
-    "WEBSITE_VNET_ROUTE_ALL"     = "1"
     "MYSQL_AUTO_CREATE_ACCOUNTS" = "true"
   }
 
   lifecycle {
     ignore_changes = [
-      app_settings["WEBSITE_VNET_ROUTE_ALL"],
       virtual_network_subnet_id,
     ]
   }
