@@ -30,6 +30,9 @@ resource "azurerm_key_vault_secret" "sql-secret-password" {
   name         = "${var.prefix}-sql-secret-password"
   value        = random_password.sql-random-password.result
   key_vault_id = azurerm_key_vault.key-vault.id
+
+  // Rotation reminder (every 6 months); bump var.key_vault_secret_expiration_date.
+  expiration_date = var.key_vault_secret_expiration_date
 }
 
 resource "azurerm_mysql_flexible_server" "guacd-db" {
